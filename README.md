@@ -40,7 +40,7 @@ Op prijs en km wordt bewust breder gezocht. Zo is de marktwaarde gebaseerd op á
 | Marktwaarde | Mediaan van vergelijkbare advertenties (zelfde model en prijsklasse-uitvoering, bv. VR6 apart van G60), gecorrigeerd voor kilometerstand. Bij minder dan 4 vergelijkbare advertenties: geen koopje-signaal. |
 | Groei per jaar | Markttrend van het model (`trend` in `watchlist.toml`) + uitvoering (bv. M3, VR6, Type R) + kilometerstand + manuele bak + brandstof + staat + extra groei als de auto tijdens het stockeren een oldtimer wordt (30 jaar, `oldtimer_age`). |
 | Eigen data | Elke dag wordt de prijshistoriek bewaard (`data/price_history.csv`). Na 6 maanden begint de **gemeten** trend mee te tellen (tot 60% na 3 jaar). |
-| Netto | Waarde na X jaar − verkoopkosten − aankoopprijs − aankoopkosten − jaarlijkse kosten × X. |
+| Netto | Waarde na X jaar − aankoopprijs − aankoopkosten (standaard €500). Stalling, verzekering, taks, onderhoud en verkoopkosten staan standaard op €0 en zijn in te vullen in het dashboard. |
 
 > De startwaarden voor `trend`, `rarity` en `demand` zijn inschattingen op basis van algemene markttrends in de klassiekerwereld. Pas ze gerust aan in `watchlist.toml`. Het blijven schattingen op basis van vraagprijzen, geen financieel advies. Controleer elke auto zelf (Car-Pass, onderhoudshistoriek, roest).
 

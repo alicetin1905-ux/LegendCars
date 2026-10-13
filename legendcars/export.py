@@ -16,6 +16,8 @@ from .store import Store
 
 DASHBOARD_DIR = Path(__file__).resolve().parent / "dashboard"
 DEFAULT_OUTPUT = ROOT / "docs" / "index.html"
+# Bronnen gebruiken verschillende landcodes (AutoScout24 "B"/"BE", Kleinanzeigen "D" ...): alles naar ISO
+COUNTRY_ISO = {"B": "BE", "D": "DE", "A": "AT", "E": "ES", "F": "FR", "I": "IT", "L": "LU"}
 SOURCE_PRIORITY = {"autoscout24": 0, "2dehands": 1, "marktplaats": 2, "kleinanzeigen": 3, "willhaben": 4, "coches": 5}
 
 
@@ -70,7 +72,7 @@ def _compact(r: dict, today: date) -> dict:
         "gear": r.get("gearbox"),
         "body": r.get("body"),
         "hp": r.get("hp"),
-        "cc": r.get("country"),
+        "cc": COUNTRY_ISO.get(r.get("country"), r.get("country")),
         "city": r.get("city"),
         "seller": r.get("seller"),
         "img": r.get("image"),

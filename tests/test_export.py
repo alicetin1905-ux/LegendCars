@@ -62,3 +62,12 @@ class TitleTest(unittest.TestCase):
         self.assertEqual(display_title("BMW Z4", "BMW Z4 M Coupé (2006)"), "BMW Z4 M Coupé (2006)")
         self.assertEqual(display_title("BMW 320", "i Cabrio"), "BMW 320 i Cabrio")
         self.assertEqual(display_title("Volkswagen Corrado", ""), "Volkswagen Corrado")
+
+
+class CountryTest(unittest.TestCase):
+    def test_country_codes_are_iso(self):
+        from legendcars.export import _compact
+        base = {"id": "x", "source": "kleinanzeigen", "url": "u", "model_id": "m", "price": 5000}
+        self.assertEqual(_compact({**base, "country": "D"}, date(2026, 10, 13))["cc"], "DE")
+        self.assertEqual(_compact({**base, "country": "DE"}, date(2026, 10, 13))["cc"], "DE")
+        self.assertEqual(_compact({**base, "country": "NL"}, date(2026, 10, 13))["cc"], "NL")

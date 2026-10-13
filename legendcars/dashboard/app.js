@@ -6,11 +6,11 @@
   var V = window.Valuation;
   if (!D || !V) return;
 
-  var STORE_KEY = "legendcars-state-v3";
+  var STORE_KEY = "legendcars-state-v4";
   var PAGE = 60;
   var CURRENT_YEAR = Number((D.today || "").slice(0, 4)) || new Date().getFullYear();
   var SOURCE_NAMES = { autoscout24: "AutoScout24", "2dehands": "2dehands", marktplaats: "Marktplaats", kleinanzeigen: "Kleinanzeigen", willhaben: "Willhaben", coches: "Coches.net" };
-  var COUNTRY_NAMES = { B: "België", NL: "Nederland", D: "Duitsland", L: "Luxemburg", F: "Frankrijk", A: "Oostenrijk", I: "Italië", E: "Spanje" };
+  var COUNTRY_NAMES = { BE: "België", NL: "Nederland", DE: "Duitsland", LU: "Luxemburg", FR: "Frankrijk", AT: "Oostenrijk", IT: "Italië", ES: "Spanje" };
 
   var COST_FIELDS = [
     { key: "storage_per_month", label: "Stalling", unit: "€ / maand", step: 5 },
@@ -32,7 +32,7 @@
   var DEFAULT_WEIGHTS = { ret: 50, deal: 15, rarity: 10, demand: 15, conf: 10 };
 
   var defaults = Object.assign(
-    { horizon_years: 5, storage_per_month: 60, insurance_per_year: 180, tax_per_year: 50, maintenance_per_year: 400, buy_costs: 500, sell_pct: 5, deal_credit: 50, oldtimer_age: 30 },
+    { horizon_years: 5, storage_per_month: 0, insurance_per_year: 0, tax_per_year: 0, maintenance_per_year: 0, buy_costs: 500, sell_pct: 0, deal_credit: 50, oldtimer_age: 30 },
     D.defaults || {}
   );
 
@@ -301,6 +301,15 @@
     }).join(" · ") + ". Schattingen op basis van vraagprijzen, geen financieel advies.";
   }
 
+  function costSummary() {
+    var yearly = V.yearlyCosts(state.costs);
+    var parts = [];
+    if (state.costs.buy_costs) parts.push("aankoopkosten " + fmtEur(state.costs.buy_costs));
+    if (yearly) parts.push(fmtEur(yearly) + " per jaar");
+    if (state.costs.sell_pct) parts.push(state.costs.sell_pct + "% bij verkoop");
+    return parts.length ? "kosten: " + parts.join(" + ") : "zonder kosten";
+  }
+
   function renderKpis(all, rows) {
     var h = state.horizon;
     var top = rows.slice().sort(SORTS.net)[0];
@@ -312,7 +321,7 @@
       { label: "Advertenties in selectie", value: int.format(rows.length), sub: gains + " met winst na " + yearsLabel(h) },
       { label: "Beste model (mediaan)", value: best ? fmtPct(best.annual) + "/j" : "–", sub: best ? best.m.make + " " + best.m.name : "te weinig data" },
       { label: "Grootste netto winst", value: top ? fmtSigned(top.proj.net) : "–", sub: top ? top.l.title : "" },
-      { label: "Mediaanprijs selectie", value: med ? fmtEur(med) : "–", sub: "kosten " + fmtEur(V.yearlyCosts(state.costs)) + " per jaar" },
+      { label: "Mediaanprijs selectie", value: med ? fmtEur(med) : "–", sub: costSummary() },
     ];
     $("kpis").innerHTML = tiles.map(function (t) {
       return '<div class="kpi"><div class="k-label">' + esc(t.label) + '</div><div class="k-value">' + esc(t.value) + '</div><div class="k-sub">' + esc(t.sub) + "</div></div>";
@@ -437,9 +446,9 @@
       "<dt>Marktwaarde" + (l.comps >= 4 ? " (" + l.comps + " vergelijkbare)" : " (te weinig vergelijkbare)") + "</dt><dd>" + fmtEur(l.fair) + "</dd>" +
       "<dt>Startwaarde in berekening</dt><dd>" + fmtEur(p.start) + "</dd>" +
       "<dt>Waarde na " + yearsLabel(h) + "</dt><dd>" + fmtEur(p.value) + "</dd>" +
-      "<dt>Verkoopkosten (" + par.sell_pct + "%)</dt><dd>−" + fmtEur(p.value - p.sellNet) + "</dd>" +
-      "<dt>Aankoopkosten</dt><dd>−" + fmtEur(par.buy_costs) + "</dd>" +
-      "<dt>Kosten " + yearsLabel(h) + " (" + fmtEur(p.yearlyCosts) + "/j)</dt><dd>−" + fmtEur(p.yearlyCosts * h) + "</dd>" +
+      (par.sell_pct ? "<dt>Verkoopkosten (" + par.sell_pct + "%)</dt><dd>−" + fmtEur(p.value - p.sellNet) + "</dd>" : "") +
+      (par.buy_costs ? "<dt>Aankoopkosten</dt><dd>−" + fmtEur(par.buy_costs) + "</dd>" : "") +
+      (p.yearlyCosts ? "<dt>Kosten " + yearsLabel(h) + " (" + fmtEur(p.yearlyCosts) + "/j)</dt><dd>−" + fmtEur(p.yearlyCosts * h) + "</dd>" : "") +
       '<dt class="total">Netto resultaat</dt><dd class="total ' + (p.net >= 0 ? "pos" : "neg") + '">' + fmtSigned(p.net) + "</dd>";
 
     var facts = [];
