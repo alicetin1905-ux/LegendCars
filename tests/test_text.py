@@ -22,3 +22,12 @@ class TextTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NormTest(unittest.TestCase):
+    def test_fuel(self):
+        from legendcars.listing import norm_fuel
+        self.assertEqual(norm_fuel("Gasolina"), "petrol")
+        self.assertEqual(norm_fuel("Benzin"), "petrol")
+        self.assertEqual(norm_fuel("Autogas (LPG)"), "lpg")
+        self.assertEqual(norm_fuel("Diésel"), "diesel")

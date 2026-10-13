@@ -18,7 +18,7 @@ from . import config
 from .export import DEFAULT_OUTPUT, build_data, render
 from .http import Fetcher
 from .matching import match, reject_reason
-from .sources import adevinta, autoscout24, kleinanzeigen
+from .sources import adevinta, autoscout24, coches, kleinanzeigen, willhaben
 from .store import Store
 
 log = logging.getLogger("legendcars")
@@ -40,6 +40,12 @@ def scrape(wl: config.Watchlist, store: Store, model_ids: list[str] | None, sour
                 if not model.query:
                     continue
                 result = kleinanzeigen.search(model, wl.settings, fetcher)
+            elif src == "willhaben":
+                if not model.query:
+                    continue
+                result = willhaben.search(model, wl.settings, fetcher)
+            elif src == "coches":
+                result = coches.search(model, wl.settings, fetcher)
             elif src in adevinta.SITES:
                 if not model.query:
                     continue
@@ -66,7 +72,7 @@ def scrape(wl: config.Watchlist, store: Store, model_ids: list[str] | None, sour
                 f"{'  FOUTEN ' + str(len(result.errors)) if result.errors else ''}",
                 flush=True,
             )
-            if verbose:
+            if verbose and src != "coches":
                 for reason, n in rejected.most_common(5):
                     print(f"    afgewezen {n:3d}x  {reason}")
         store.save()  # tussentijds bewaren: een afgebroken run verliest niets
@@ -84,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
     for name in ("scrape", "update"):
         sp = sub.add_parser(name)
         sp.add_argument("--model", action="append", help="enkel dit model-id (herhaalbaar)")
-        sp.add_argument("--source", action="append", help="autoscout24, 2dehands, marktplaats of kleinanzeigen (herhaalbaar)")
+        sp.add_argument("--source", action="append", help="autoscout24, 2dehands, marktplaats, kleinanzeigen, willhaben of coches (herhaalbaar)")
     bp = sub.add_parser("build")
     for sp in (bp, sub.choices["update"]):
         sp.add_argument("--output", default=str(DEFAULT_OUTPUT))

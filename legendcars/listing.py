@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 
+from .text import normalize
+
 
 @dataclass
 class Listing:
@@ -35,20 +37,20 @@ class Listing:
 def norm_fuel(value: str | None) -> str | None:
     if not value:
         return None
-    v = value.lower()
+    v = normalize(value)
     if "diesel" in v:
         return "diesel"
+    if "benzin" in v or "essence" in v or "petrol" in v or "gasolin" in v:
+        return "petrol"
     if "lpg" in v or "gas" in v:
         return "lpg"
-    if "benzin" in v or "essence" in v or "petrol" in v:
-        return "petrol"
     return "other"
 
 
 def norm_gearbox(value: str | None) -> str | None:
     if not value:
         return None
-    v = value.lower()
+    v = normalize(value)
     if "auto" in v or "semi" in v or "half" in v:
         return "automatic"
     if "hand" in v or "manu" in v or "schalt" in v:
@@ -59,7 +61,7 @@ def norm_gearbox(value: str | None) -> str | None:
 def norm_body(value: str | None) -> str | None:
     if not value:
         return None
-    v = value.lower()
+    v = normalize(value)
     if "cabrio" in v or "roadster" in v or "convertible" in v:
         return "cabrio"
     if "coup" in v:

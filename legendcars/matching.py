@@ -2,13 +2,19 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 from .config import Model, Settings
 from .listing import Listing
 from .text import normalize
 
-TEXT_SOURCES = {"2dehands", "marktplaats", "kleinanzeigen"}
+TEXT_SOURCES = {"2dehands", "marktplaats", "kleinanzeigen", "willhaben", "coches"}
+# Als de site geen carrosserie meegeeft, moet het in de tekst staan (anders glipt bv. een Golf 2 door als "Golf 1 Cabrio")
+BODY_WORDS = {
+    "cabrio": re.compile(r"cabrio|roadster|spider|spyder|convertible|descapotable|karmann|barchetta"),
+    "coupe": re.compile(r"\bcoupe|\bcoupes?\b"),
+}
 MAX_VARIANT_BONUS = 6.0
 
 
@@ -51,8 +57,12 @@ def reject_reason(listing: Listing, model: Model, settings: Settings) -> str | N
     for rx in model.exclude:
         if rx.search(title):
             return f"uitgesloten: {rx.pattern}"
-    if model.body and listing.body and listing.body not in model.body:
-        return f"carrosserie {listing.body} niet in {model.body}"
+    if model.body:
+        if listing.body:
+            if listing.body not in model.body:
+                return f"carrosserie {listing.body} niet in {model.body}"
+        elif model.body_in_text and listing.source in TEXT_SOURCES and not any(BODY_WORDS[b].search(full) for b in model.body if b in BODY_WORDS):
+            return f"carrosserie onbekend en niet in tekst ({'/'.join(model.body)})"
     return None
 
 

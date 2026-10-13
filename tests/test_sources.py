@@ -90,3 +90,41 @@ class KleinanzeigenTest(unittest.TestCase):
         from legendcars.sources import kleinanzeigen
         url = kleinanzeigen.build_url("bmw z3", WL.model("bmw-z3-cabrio"), 2)
         self.assertEqual(url, "https://www.kleinanzeigen.de/s-autos/seite:2/bmw-z3/k0c216+autos.ez_i:1995%2C1999")
+
+
+class WillhabenTest(unittest.TestCase):
+    def test_parse(self):
+        from legendcars.sources import willhaben
+        sr = willhaben.parse_page((FIX / "willhaben_page.html").read_text(encoding="utf-8"))
+        listing = willhaben.parse_advert(sr["advertSummaryList"]["advertSummary"][0])
+        self.assertEqual(listing.id, "willhaben:1690839498")
+        self.assertEqual(listing.title, "VW Corrado VR6 Turbo")
+        self.assertEqual(listing.subtitle, "")  # specificatie staat al in de titel
+        self.assertEqual((listing.year, listing.km, listing.price), (1992, 200000, 17999))
+        self.assertEqual((listing.gearbox, listing.body, listing.fuel), ("manual", "coupe", "petrol"))
+        self.assertEqual((listing.hp, listing.country, listing.seller), (174, "A", "private"))
+        self.assertTrue(listing.url.startswith("https://www.willhaben.at/iad/gebrauchtwagen/d/auto/"))
+
+    def test_build_url(self):
+        from legendcars.sources import willhaben
+        url = willhaben.build_url("bmw z3", WL.model("bmw-z3-cabrio"), 2)
+        self.assertIn("keyword=bmw+z3", url)
+        self.assertIn("YEAR_MODEL_FROM=1995&YEAR_MODEL_TO=1999", url)
+        self.assertIn("page=2", url)
+
+
+class CochesTest(unittest.TestCase):
+    def test_parse(self):
+        from legendcars.sources import coches
+        res = coches.parse_page((FIX / "coches_page.html").read_text(encoding="utf-8"))
+        listing = coches.parse_item(res["items"][0])
+        self.assertEqual(listing.id, "coches:62618052")
+        self.assertEqual((listing.year, listing.km, listing.price, listing.hp), (1990, 74645, 15999, 160))
+        self.assertEqual((listing.body, listing.fuel, listing.country, listing.seller), ("coupe", "petrol", "E", "dealer"))
+        self.assertTrue(listing.url.startswith("https://www.coches.net/volkswagen-corrado"))
+
+    def test_make_slug_and_url(self):
+        from legendcars.sources import coches
+        self.assertEqual(coches.make_slug("Alfa Romeo"), "alfa_romeo")
+        self.assertEqual(coches.make_slug("Mercedes-Benz"), "mercedes-benz")
+        self.assertEqual(coches.build_url("bmw", 1999, 3), "https://www.coches.net/bmw/segunda-mano/?MaxYear=1999&pg=3")

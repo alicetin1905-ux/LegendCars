@@ -103,3 +103,17 @@ class LookalikeTest(unittest.TestCase):
         self.assertNotIn("Duetto (1966-69)", [v for v, _ in m.variants])
         m = match(L("Alfa Romeo Spider Duetto 1600", source="autoscout24", year=1967), model, WL.settings)
         self.assertIn("Duetto (1966-69)", [v for v, _ in m.variants])
+
+
+class BodyInTextTest(unittest.TestCase):
+    def test_unknown_body_needs_body_word_in_text(self):
+        model = WL.model("vw-golf1-cabrio")
+        self.assertIsNotNone(reject_reason(L("VW Golf 2 GTI", source="kleinanzeigen", year=1990), model, WL.settings))
+        self.assertIsNone(reject_reason(L("VW Golf 1 Cabrio Karmann", source="kleinanzeigen", year=1990), model, WL.settings))
+
+    def test_z3_without_body_word_is_fine(self):
+        self.assertIsNone(reject_reason(L("BMW Z3 1.9", source="kleinanzeigen", year=1998), WL.model("bmw-z3-cabrio"), WL.settings))
+
+    def test_spanish_bmw_title(self):
+        m = match(L("BMW Serie 3 328I CABRIOLET", source="coches", year=1996, body="cabrio"), WL.model("bmw-e36-coupe-cabrio"), WL.settings)
+        self.assertIsNotNone(m)

@@ -69,6 +69,7 @@ class Model:
     text_keywords: list[re.Pattern]
     exclude: list[re.Pattern]
     body: list[str]
+    body_in_text: bool
     variants: list[Variant]
     as24: list[As24Search]
     query: list[str]
@@ -95,6 +96,8 @@ class Settings:
     sources: list[str]
     max_year: int | None
     kleinanzeigen_max_pages: int
+    willhaben_max_pages: int
+    coches_max_pages: int
     as24_countries: list[str]
     as24_max_pages: int
     adevinta_max_pages: int
@@ -127,6 +130,8 @@ def load(path: Path | str = DEFAULT_WATCHLIST) -> Watchlist:
         sources=s.get("sources", ["autoscout24", "2dehands", "marktplaats"]),
         max_year=s.get("max_year"),
         kleinanzeigen_max_pages=int(s.get("kleinanzeigen_max_pages", 6)),
+        willhaben_max_pages=int(s.get("willhaben_max_pages", 3)),
+        coches_max_pages=int(s.get("coches_max_pages", 40)),
         as24_countries=s.get("as24_countries", ["B", "NL", "D"]),
         as24_max_pages=int(s.get("as24_max_pages", 20)),
         adevinta_max_pages=int(s.get("adevinta_max_pages", 3)),
@@ -163,6 +168,7 @@ def load(path: Path | str = DEFAULT_WATCHLIST) -> Watchlist:
                 text_keywords=_compile(m.get("text_keywords")),
                 exclude=_compile(m.get("exclude")),
                 body=m.get("body", []),
+                body_in_text=bool(m.get("body_in_text", True)),
                 variants=[
                     Variant(
                         label=v["label"],

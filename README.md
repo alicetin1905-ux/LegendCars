@@ -1,6 +1,17 @@
 # LegendCars: Oldtimer collection
 
-Een dashboard dat elke dag op **AutoScout24** (België, Nederland, Duitsland, Luxemburg, Frankrijk, Oostenrijk, Italië, Spanje), **2dehands.be** en **Marktplaats.nl** zoekt naar de auto's uit je collectielijst. De auto's worden gerangschikt op hoeveel waarde ze kunnen opbrengen als je ze een aantal jaar stockeert.
+Een dashboard dat elke dag zoekt naar de auto's uit je collectielijst op:
+
+| Website | Land | Wat |
+|---|---|---|
+| **AutoScout24** | BE, NL, DE, LU, FR, AT, IT, ES | vooral handelaars |
+| **2dehands.be** | BE | particulieren en handelaars |
+| **Marktplaats.nl** | NL | particulieren en handelaars |
+| **Kleinanzeigen.de** | DE | vooral particulieren, veel youngtimers onder €10.000 |
+| **Willhaben.at** | AT | particulieren en handelaars |
+| **Coches.net** | ES | roestvrije klassiekers uit Spanje |
+
+Niet opgenomen: **AutoTrack.nl** (zelfde advertenties als AutoScout24), **Autovlan.be** (doorverwezen naar Gocar), **Gocar.be** (Cloudflare-botbeveiliging), **Mobile.de**, **Leboncoin.fr**, **La Centrale**, **Subito.it**, **Gaspedaal.nl**, **Autoweek**, **Catawiki**, **Car & Classic** en **Classic Driver** (blokkeren automatische opvragingen). 2ememain.be is dezelfde database als 2dehands. De auto's worden gerangschikt op hoeveel waarde ze kunnen opbrengen als je ze een aantal jaar stockeert.
 
 Open `docs/index.html` in je browser. Of zet GitHub Pages aan (zie hieronder), dan staat het dashboard online en wordt het elke ochtend automatisch bijgewerkt.
 
@@ -11,6 +22,16 @@ Open `docs/index.html` in je browser. Of zet GitHub Pages aan (zie hieronder), d
 - **Beste kansen**: elke advertentie met vraagprijs, marktwaarde, verwachte waarde na X jaar, netto winst, rendement per jaar en een investeringsscore (0-100). Klik op een rij voor de volledige rekensom en een grafiek.
 - **Filters**: merk, model, prijs van/tot (standaard €2.500-9.999), max. km (standaard 250.000), land, website, enkel manueel, projecten/schade verbergen, enkel winstgevend.
 - **Kosten en scoregewichten**: stalling, verzekering, taks, onderhoud, aankoop- en verkoopkosten. Je kiest ook zelf hoe zwaar rendement, koopjes, zeldzaamheid, vraag en betrouwbaarheid meetellen. Je instellingen worden in je browser onthouden.
+
+## Filters
+
+| Filter | Waarde | Waar |
+|---|---|---|
+| Bouwjaar | t/m 1999 | bij het zoeken (`max_year` in `watchlist.toml`) |
+| Prijs | €2.500 – €9.999 | standaardfilter in het dashboard (`price_min`/`price_max`) |
+| Kilometerstand | max. 250.000 km | standaardfilter in het dashboard (`max_km`) |
+
+Op prijs en km wordt bewust breder gezocht. Zo is de marktwaarde gebaseerd op álle vergelijkbare auto's en niet alleen op de goedkope.
 
 ## Hoe de waarde wordt ingeschat
 
@@ -34,7 +55,7 @@ AutoScout24-id's voor merken en modellen vind je in de URL van een zoekopdracht 
 Python 3.11+ is nodig, verder niets te installeren.
 
 ```bash
-python -m legendcars update                      # alles doorzoeken + dashboard bouwen (± 30 min)
+python -m legendcars update                      # alles doorzoeken + dashboard bouwen (± 45 min)
 python -m legendcars scrape --model vw-corrado   # één model
 python -m legendcars -v scrape --source 2dehands # één site, met redenen waarom advertenties afvielen
 python -m legendcars build                       # enkel dashboard opnieuw bouwen
@@ -53,7 +74,7 @@ Tests: `python -m unittest discover -s tests -t .` en `node --test tests/valuati
 
 ```
 watchlist.toml              jouw filters, trends en standaardkosten
-legendcars/sources/         AutoScout24 en 2dehands/Marktplaats
+legendcars/sources/         één bestand per website
 legendcars/matching.py      controleert of een advertentie echt bij het model hoort
 legendcars/market.py        marktwaarde, groei-onderdelen, gemeten trend
 legendcars/dashboard/       HTML/CSS/JS van het dashboard (valuation.js = projectie)
@@ -64,6 +85,5 @@ docs/index.html             het gebouwde dashboard
 
 ## Opmerkingen
 
-- Mobile.de blokkeert automatische opvragingen. Daarom wordt Duitsland via AutoScout24 doorzocht.
 - De scraper vraagt ongeveer één pagina per seconde op en bewaart geen namen of telefoonnummers van verkopers. Gebruik het enkel voor persoonlijk zoekwerk; de gebruiksvoorwaarden van de sites gelden.
 - Een advertentie die bij een volledige zoekopdracht niet meer opduikt, wordt als *verdwenen* gemarkeerd. Dat is waarschijnlijk verkocht, en het is nuttige data voor de werkelijke vraag per model.

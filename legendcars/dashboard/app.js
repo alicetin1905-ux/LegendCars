@@ -9,7 +9,7 @@
   var STORE_KEY = "legendcars-state-v2";
   var PAGE = 60;
   var CURRENT_YEAR = Number((D.today || "").slice(0, 4)) || new Date().getFullYear();
-  var SOURCE_NAMES = { autoscout24: "AutoScout24", "2dehands": "2dehands", marktplaats: "Marktplaats", kleinanzeigen: "Kleinanzeigen" };
+  var SOURCE_NAMES = { autoscout24: "AutoScout24", "2dehands": "2dehands", marktplaats: "Marktplaats", kleinanzeigen: "Kleinanzeigen", willhaben: "Willhaben", coches: "Coches.net" };
   var COUNTRY_NAMES = { B: "België", NL: "Nederland", D: "Duitsland", L: "Luxemburg", F: "Frankrijk", A: "Oostenrijk", I: "Italië", E: "Spanje" };
 
   var COST_FIELDS = [
