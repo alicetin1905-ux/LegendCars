@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
 import urllib.parse
 from dataclasses import replace
 
@@ -67,6 +68,18 @@ def parse_item(item: dict) -> Listing:
     )
 
 
+def _get_with_retry(url: str, fetcher: Fetcher, attempts: int = 3) -> dict:
+    """Coches.net geeft af en toe een pagina zonder data terug; even wachten en opnieuw proberen helpt."""
+    for attempt in range(attempts):
+        try:
+            return parse_page(fetcher.get(url))
+        except ValueError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(5 * (attempt + 1))
+    raise AssertionError("unreachable")
+
+
 def _fetch_make(make: str, settings: Settings, fetcher: Fetcher) -> tuple[list[Listing], bool, list[str]]:
     slug = make_slug(make)
     max_year = settings.max_year or 2100
@@ -80,7 +93,7 @@ def _fetch_make(make: str, settings: Settings, fetcher: Fetcher) -> tuple[list[L
     for page in range(1, settings.coches_max_pages + 1):
         url = build_url(slug, max_year, page)
         try:
-            res = parse_page(fetcher.get(url))
+            res = _get_with_retry(url, fetcher)
         except Exception as e:  # noqa: BLE001
             log.warning("Coches.net %s pagina %s: %s", make, page, e)
             errors.append(f"{url}: {e}")
