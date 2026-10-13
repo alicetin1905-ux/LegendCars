@@ -389,6 +389,15 @@
     return out.length ? '<div class="chips">' + out.join("") + "</div>" : "";
   }
 
+  /* Directe links naar de advertentie (en dezelfde auto op andere sites). */
+  function adLinks(l) {
+    var links = [{ src: l.src, url: l.url }].concat(l.also || []);
+    return '<div class="ad-links">' + links.map(function (a, i) {
+      return '<a class="ad-link' + (i ? " alt" : "") + '" href="' + esc(a.url) + '" target="_blank" rel="noopener">' +
+        (i ? "" : "Bekijk op ") + esc(SOURCE_NAMES[a.src] || a.src) + ' <span aria-hidden="true">↗</span></a>';
+    }).join("") + "</div>";
+  }
+
   function rowHtml(r, i) {
     var l = r.l, m = r.m, p = r.proj;
     var dealPct = l.fair / l.price - 1;
@@ -399,8 +408,8 @@
     return '<li class="row" data-id="' + esc(l.id) + '">' +
       '<div class="row-main" tabindex="0" role="button" aria-expanded="' + open + '">' +
       '<span class="rank">' + (i + 1) + "</span>" + thumb(l, m) +
-      '<div class="car"><div class="car-title">' + esc(l.title) + '</div><div class="car-model">' + esc(m.make + " " + m.name) + " · " +
-      esc(COUNTRY_NAMES[l.cc] || l.cc || "") + " · " + esc(SOURCE_NAMES[l.src] || l.src) + (l.also.length ? " +" + l.also.length : "") + "</div>" + chips(l, m) + "</div>" +
+      '<div class="car"><a class="car-title" href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.title) + '</a><div class="car-model">' + esc(m.make + " " + m.name) + " · " +
+      esc(COUNTRY_NAMES[l.cc] || l.cc || "") + (l.city ? " · " + esc(l.city) : "") + "</div>" + chips(l, m) + adLinks(l) + "</div>" +
       '<div class="num c-yk"><span class="lbl">Bouwjaar · km</span><div class="main">' + (l.year || "–") + '</div><div class="sub2">' + fmtKm(l.km) + "</div></div>" +
       '<div class="num c-price"><span class="lbl">Prijs · markt</span><div class="main">' + fmtEur(l.price) + '</div><div class="sub2">' + dealTxt + "</div></div>" +
       '<div class="num c-value"><span class="lbl">Waarde over ' + yearsLabel(state.horizon) + '</span><div class="main">' + fmtEur(p.value) + '</div><div class="sub2">' + fmtRate(p.ratePct) + " per jaar</div></div>" +
