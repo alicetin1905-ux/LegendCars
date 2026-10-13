@@ -67,7 +67,7 @@ Tests: `python -m unittest discover -s tests -t .` en `node --test tests/valuati
 ## Automatisch elke dag (GitHub)
 
 1. **Settings → Actions → General → Workflow permissions**: kies *Read and write permissions*.
-2. **Settings → Pages**: *Deploy from a branch*, branch `main`, map `/docs`.
+2. **Settings → Pages**: *Deploy from a branch*, branch `main`, map `/docs` of `/ (root)`. Bij root stuurt `index.html` door naar het dashboard in `docs/`.
 3. De workflow **Dagelijkse update** draait elke ochtend en bewaart nieuwe advertenties en prijzen in `data/`. Je kunt hem ook manueel starten via **Actions → Dagelijkse update → Run workflow**.
 
 ## Bestanden
