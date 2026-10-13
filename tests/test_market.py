@@ -88,3 +88,11 @@ class RegressionTest(unittest.TestCase):
         old = min(rows, key=lambda r: (r["year"], -r["km"]))
         new = max(rows, key=lambda r: (r["year"], -r["km"]))
         self.assertLess(by_id[old["id"]]["fair"], by_id[new["id"]]["fair"])
+
+
+class CleanKmTest(unittest.TestCase):
+    def test_placeholder_km_becomes_unknown(self):
+        from legendcars.market import clean_km
+        self.assertIsNone(clean_km({"km": 1000, "year": 1990}, 2026)["km"])
+        self.assertEqual(clean_km({"km": 1000, "year": 2024}, 2026)["km"], 1000)
+        self.assertEqual(clean_km({"km": 85_000, "year": 1990}, 2026)["km"], 85_000)

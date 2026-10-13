@@ -151,8 +151,17 @@ def blended_trend(model: Model, observed: dict | None) -> tuple[float, float]:
     return round((1 - w) * model.trend + w * obs, 2), round(w, 2)
 
 
+def clean_km(r: dict, current_year: int) -> dict:
+    """< 5.000 km op een auto ouder dan 10 jaar is bijna altijd 'niet ingevuld' (1, 999, 1000 ...)."""
+    if r.get("km") and r["km"] < 5_000 and r.get("year") and current_year - r["year"] > 10:
+        return {**r, "km": None}
+    return r
+
+
 def analyse(records: list[dict], watchlist: Watchlist, history: list[tuple[str, str, int]]) -> tuple[list[dict], dict]:
     """Geeft (verrijkte actieve advertenties, modelstatistieken) terug."""
+    current_year = date.today().year
+    records = [clean_km(r, current_year) for r in records]
     models = {m.id: m for m in watchlist.models}
     min_price = watchlist.settings.min_price
     active = [
