@@ -110,7 +110,10 @@ h3 { font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; lett
 .horizon label { font-size: 1rem; }
 .horizon strong { font-family: var(--font-display); font-size: 1.5rem; color: var(--accent); font-variant-numeric: tabular-nums; }
 .horizon input[type="range"] { width: 100%; accent-color: var(--accent); margin: 6px 0 0; }
-.ticks { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.78rem; }
+.ticks { position: relative; height: 1.3em; margin-inline: 8px; color: var(--muted); font-size: 0.78rem; }
+.ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.ticks span:first-child { transform: none; }
+.ticks span:last-child { transform: translateX(-100%); }
 .filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 12px; }
 .field { display: grid; gap: 3px; min-width: 0; }
 .field.grow { grid-column: span 2; }
@@ -135,7 +138,7 @@ select:focus-visible, input:focus-visible, button:focus-visible, summary:focus-v
 
 /* Modelgrafiek */
 .model-chart { display: grid; gap: 4px; }
-.m-row { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) 4.5rem; gap: 10px; align-items: center; padding: 3px 4px; border-radius: 6px; background: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; width: 100%; }
+.m-row { display: grid; grid-template-columns: minmax(0, 19rem) minmax(0, 1fr) 4.5rem; gap: 10px; align-items: center; padding: 3px 4px; border-radius: 6px; background: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; width: 100%; }
 .m-row:hover, .m-row.active { background: var(--accent-soft); }
 .m-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.92rem; }
 .m-name small { color: var(--muted); }
@@ -144,7 +147,7 @@ select:focus-visible, input:focus-visible, button:focus-visible, summary:focus-v
 .m-bar { position: absolute; top: 2px; height: 12px; border-radius: 3px; background: var(--bar); }
 .m-bar.neg { background: var(--bar-neg); }
 .m-val { font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; font-size: 0.92rem; }
-.m-axis { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) 4.5rem; gap: 10px; padding-inline: 4px; color: var(--muted); font-size: 0.75rem; }
+.m-axis { display: grid; grid-template-columns: minmax(0, 19rem) minmax(0, 1fr) 4.5rem; gap: 10px; padding-inline: 4px; color: var(--muted); font-size: 0.75rem; }
 .m-axis .ax { position: relative; height: 1em; }
 .m-axis .ax span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
 @media (max-width: 640px) {

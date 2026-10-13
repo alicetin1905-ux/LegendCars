@@ -41,13 +41,26 @@ def dedupe(rows: list[dict]) -> list[dict]:
     return out
 
 
+def display_title(title: str, subtitle: str) -> str:
+    """AutoScout24: titel = "BMW Z4", ondertitel vaak "BMW Z4 M Coupé ..." -> geen herhaling."""
+    title, subtitle = (title or "").strip(), (subtitle or "").strip()
+    if not subtitle:
+        return title
+    if subtitle.lower().startswith(title.lower()):
+        return subtitle
+    make = title.split(" ")[0].lower() if title else ""
+    if make and subtitle.lower().startswith(make):
+        return subtitle
+    return f"{title} {subtitle}"
+
+
 def _compact(r: dict, today: date) -> dict:
     first = r.get("first_seen")
     return {
         "id": r["id"],
         "src": r["source"],
         "url": r["url"],
-        "title": " ".join(x for x in [r.get("title"), r.get("subtitle")] if x).strip(),
+        "title": display_title(r.get("title"), r.get("subtitle")),
         "model": r["model_id"],
         "year": r.get("year"),
         "km": r.get("km"),

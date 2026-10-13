@@ -54,3 +54,11 @@ class ExportTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TitleTest(unittest.TestCase):
+    def test_display_title(self):
+        from legendcars.export import display_title
+        self.assertEqual(display_title("BMW Z4", "BMW Z4 M Coupé (2006)"), "BMW Z4 M Coupé (2006)")
+        self.assertEqual(display_title("BMW 320", "i Cabrio"), "BMW 320 i Cabrio")
+        self.assertEqual(display_title("Volkswagen Corrado", ""), "Volkswagen Corrado")
