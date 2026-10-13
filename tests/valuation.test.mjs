@@ -12,12 +12,20 @@ const params = {
 };
 const base = { price: 10000, fair: 10000, year: 1992, conf: 1, rate: { trend: 4, variant: 0, km: 0, gearbox: 0, fuel: 0, condition: 0 } };
 
-test("age adjustment around the 25-year line", () => {
-  assert.equal(V.ageAdjustment(2003, 2026, 5), 1.0); // wordt 25 tijdens stockage
-  assert.equal(V.ageAdjustment(2010, 2026, 5), 0);
-  assert.equal(V.ageAdjustment(1995, 2026, 5), 0.3);
+test("age adjustment around the 30-year line (default)", () => {
+  assert.equal(V.OLDTIMER_AGE, 30);
+  assert.equal(V.ageAdjustment(1998, 2026, 5), 1.0); // wordt 30 tijdens stockage
+  assert.equal(V.ageAdjustment(2003, 2026, 5), 0);
+  assert.equal(V.ageAdjustment(1990, 2026, 5), 0.3);
   assert.equal(V.ageAdjustment(1975, 2026, 5), 0);
   assert.equal(V.ageAdjustment(null, 2026, 5), 0);
+});
+
+test("oldtimer age is configurable", () => {
+  assert.equal(V.ageAdjustment(2003, 2026, 5, 25), 1.0);
+  const parts = V.rateParts({ year: 2003, rate: {} }, { horizon: 5, oldtimer_age: 25 }, 2026);
+  assert.equal(parts.find((p) => p.key === "age").value, 1.0);
+  assert.equal(V.oldtimerAge({}), 30);
 });
 
 test("projection arithmetic", () => {

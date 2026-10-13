@@ -60,11 +60,12 @@ max_km = 250000
 horizon_years = 5
 storage_per_month = 60      # stalling
 insurance_per_year = 180    # oldtimerverzekering
-tax_per_year = 50           # verkeersbelasting (BE O-plaat ~ forfait)
+tax_per_year = 50           # verkeersbelasting (oldtimerregeling ~ forfait)
 maintenance_per_year = 400  # onderhoud tijdens stockage
 buy_costs = 500             # transport, keuring, inschrijving
 sell_pct = 5                # verkoopkosten in % (veiling/commissie/advertentie)
 deal_credit = 50            # % van het verschil tussen marktwaarde en vraagprijs dat je meetelt bij een koopje
+oldtimer_age = 30           # vanaf deze leeftijd geldt de oldtimerregeling (extra waardegroei rond die grens)
 
 # ─────────────────────────────── Alfa Romeo ───────────────────────────────
 

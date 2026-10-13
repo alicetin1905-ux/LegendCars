@@ -6,7 +6,7 @@
   var V = window.Valuation;
   if (!D || !V) return;
 
-  var STORE_KEY = "legendcars-state-v2";
+  var STORE_KEY = "legendcars-state-v3";
   var PAGE = 60;
   var CURRENT_YEAR = Number((D.today || "").slice(0, 4)) || new Date().getFullYear();
   var SOURCE_NAMES = { autoscout24: "AutoScout24", "2dehands": "2dehands", marktplaats: "Marktplaats", kleinanzeigen: "Kleinanzeigen", willhaben: "Willhaben", coches: "Coches.net" };
@@ -20,6 +20,7 @@
     { key: "buy_costs", label: "Aankoopkosten", unit: "€ eenmalig", step: 50 },
     { key: "sell_pct", label: "Verkoopkosten", unit: "% van waarde", step: 0.5 },
     { key: "deal_credit", label: "Koopje telt mee", unit: "% van verschil", step: 5 },
+    { key: "oldtimer_age", label: "Oldtimer vanaf", unit: "jaar oud", step: 1 },
   ];
   var WEIGHT_FIELDS = [
     { key: "ret", label: "Verwacht rendement" },
@@ -31,7 +32,7 @@
   var DEFAULT_WEIGHTS = { ret: 50, deal: 15, rarity: 10, demand: 15, conf: 10 };
 
   var defaults = Object.assign(
-    { horizon_years: 5, storage_per_month: 60, insurance_per_year: 180, tax_per_year: 50, maintenance_per_year: 400, buy_costs: 500, sell_pct: 5, deal_credit: 50 },
+    { horizon_years: 5, storage_per_month: 60, insurance_per_year: 180, tax_per_year: 50, maintenance_per_year: 400, buy_costs: 500, sell_pct: 5, deal_credit: 50, oldtimer_age: 30 },
     D.defaults || {}
   );
 
@@ -379,8 +380,9 @@
     l.variants.forEach(function (v) { out.push('<span class="chip">' + esc(v) + "</span>"); });
     var age = l.year ? CURRENT_YEAR - l.year : null;
     if (age != null) {
-      if (age >= V.OLDTIMER_AGE) out.push('<span class="chip brass">Oldtimer</span>');
-      else if (age + state.horizon >= V.OLDTIMER_AGE) out.push('<span class="chip brass">Oldtimer in ' + (l.year + V.OLDTIMER_AGE) + "</span>");
+      var lim = V.oldtimerAge(state.costs);
+      if (age >= lim) out.push('<span class="chip brass">Oldtimer</span>');
+      else if (age + state.horizon >= lim) out.push('<span class="chip brass">Oldtimer in ' + (l.year + lim) + "</span>");
     }
     if (l.gear === "manual") out.push('<span class="chip plain">Manueel</span>');
     else if (l.gear === "automatic") out.push('<span class="chip plain">Automaat</span>');

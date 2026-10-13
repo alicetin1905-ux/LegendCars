@@ -5,7 +5,7 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  var OLDTIMER_AGE = 25; // Belgische O-plaat / FIVA-grens
+  var OLDTIMER_AGE = 30; // standaard; instelbaar via params.oldtimer_age (watchlist.toml [dashboard])
   var MIN_RATE = -5;
   var MAX_RATE = 15;
 
@@ -13,13 +13,18 @@
     return Math.max(lo, Math.min(hi, x));
   }
 
-  /* Extra groei rond de oldtimergrens: wagens die tijdens je stockage 25 jaar worden,
+  function oldtimerAge(params) {
+    return (params && params.oldtimer_age) || OLDTIMER_AGE;
+  }
+
+  /* Extra groei rond de oldtimergrens: wagens die tijdens je stockage oldtimer worden,
      krijgen goedkopere verzekering/taks en meer kopers. */
-  function ageAdjustment(year, currentYear, horizon) {
+  function ageAdjustment(year, currentYear, horizon, limit) {
     if (!year) return 0;
+    var lim = limit || OLDTIMER_AGE;
     var age = currentYear - year;
-    if (age < OLDTIMER_AGE && age + horizon >= OLDTIMER_AGE) return 1.0;
-    if (age >= OLDTIMER_AGE && age < OLDTIMER_AGE + 10) return 0.3;
+    if (age < lim && age + horizon >= lim) return 1.0;
+    if (age >= lim && age < lim + 10) return 0.3;
     return 0;
   }
 
@@ -33,7 +38,7 @@
       { key: "gearbox", label: "Versnellingsbak", value: r.gearbox || 0 },
       { key: "fuel", label: "Brandstof", value: r.fuel || 0 },
       { key: "condition", label: "Staat (uit advertentie)", value: r.condition || 0 },
-      { key: "age", label: "Oldtimergrens (25 jaar)", value: ageAdjustment(listing.year, currentYear, params.horizon) },
+      { key: "age", label: "Oldtimergrens (" + oldtimerAge(params) + " jaar)", value: ageAdjustment(listing.year, currentYear, params.horizon, oldtimerAge(params)) },
     ];
   }
 
@@ -112,6 +117,7 @@
 
   return {
     OLDTIMER_AGE: OLDTIMER_AGE,
+    oldtimerAge: oldtimerAge,
     ageAdjustment: ageAdjustment,
     rateParts: rateParts,
     annualRate: annualRate,
