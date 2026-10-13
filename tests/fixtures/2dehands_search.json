@@ -1,0 +1,13 @@
+{"totalResultCount": 2, "listings": [
+ {"itemId": "m2452456855", "title": "Volkswagen CORRADO 2.9 VR6 | KUIPSTOELEN", "description": "Mooie Corrado VR6 in topstaat",
+  "priceInfo": {"priceCents": 1797500, "priceType": "FIXED"},
+  "location": {"cityName": "Gent", "countryName": "België"},
+  "pictures": [{"mediumUrl": "https://images.2dehands.com/x_82.jpg"}],
+  "vipUrl": "/v/auto-s/volkswagen/m2452456855-volkswagen-corrado-2-9-vr6",
+  "attributes": [{"key": "constructionYear", "value": "1993"}, {"key": "mileage", "value": "227836"}, {"key": "fuel", "value": "Benzine"},
+                 {"key": "transmission", "value": "Handgeschakeld"}, {"key": "body", "value": "Coupé"}, {"key": "model", "value": "Corrado"}]},
+ {"itemId": "m2311361560", "title": "Corrado VR6 Turbo project", "priceInfo": {"priceCents": 0, "priceType": "FAST_BID"},
+  "location": {"cityName": "Ingen", "countryName": "Nederland"}, "imageUrls": ["//images.2dehands.com/y.jpg"],
+  "vipUrl": "/v/auto-s/volkswagen/m2311361560-corrado-vr6-turbo-project",
+  "attributes": [{"key": "constructionYear", "value": "1991"}, {"key": "mileage", "value": "0"}]}
+]}

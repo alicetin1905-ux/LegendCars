@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LegendCars Oldtimer Collection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/*INLINE:style.css*/
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="brand">
+      <span class="wordmark">LegendCars</span>
+      <span class="edition">Oldtimer collection</span>
+    </div>
+    <p class="meta" id="meta"></p>
+  </header>
+
+  <section class="kpis" id="kpis" aria-label="Samenvatting"></section>
+
+  <section class="panel controls" aria-label="Filters">
+    <div class="horizon">
+      <label for="horizon">Stockeren voor <strong id="horizon-out">5 jaar</strong></label>
+      <input type="range" id="horizon" min="1" max="15" step="1" value="5">
+      <div class="ticks" aria-hidden="true"><span>1</span><span>5</span><span>10</span><span>15 jaar</span></div>
+    </div>
+    <div class="filters">
+      <div class="field"><label for="f-make">Merk</label><select id="f-make"></select></div>
+      <div class="field"><label for="f-model">Model</label><select id="f-model"></select></div>
+      <div class="field"><label for="f-budget">Max. budget</label>
+        <select id="f-budget">
+          <option value="0">Geen limiet</option>
+          <option value="5000">€ 5.000</option>
+          <option value="10000">€ 10.000</option>
+          <option value="15000">€ 15.000</option>
+          <option value="20000">€ 20.000</option>
+          <option value="30000">€ 30.000</option>
+          <option value="50000">€ 50.000</option>
+          <option value="75000">€ 75.000</option>
+        </select>
+      </div>
+      <div class="field"><label for="f-country">Land</label><select id="f-country"></select></div>
+      <div class="field"><label for="f-source">Website</label><select id="f-source"></select></div>
+      <div class="field"><label for="f-sort">Sorteren op</label>
+        <select id="f-sort">
+          <option value="score">Investeringsscore</option>
+          <option value="net">Netto winst na stockage</option>
+          <option value="annual">Rendement per jaar</option>
+          <option value="deal">Koopje t.o.v. markt</option>
+          <option value="price">Prijs (laag → hoog)</option>
+          <option value="new">Nieuwste eerst</option>
+        </select>
+      </div>
+      <div class="field grow"><label for="f-q">Zoeken in titel</label><input id="f-q" type="search" placeholder="bv. vr6, hardtop, m3"></div>
+    </div>
+    <div class="toggles">
+      <label class="check"><input type="checkbox" id="f-manual"> Enkel manueel</label>
+      <label class="check"><input type="checkbox" id="f-risk" checked> Verberg risico's (project, schade, verdacht lage prijs)</label>
+      <label class="check"><input type="checkbox" id="f-conf" checked> Verberg lage betrouwbaarheid</label>
+      <label class="check"><input type="checkbox" id="f-gain"> Enkel met winst</label>
+    </div>
+    <details class="costs" id="costs">
+      <summary>Kosten en scoregewichten</summary>
+      <div class="cost-grid" id="cost-grid"></div>
+      <h3 class="sub">Gewicht in de investeringsscore</h3>
+      <div class="cost-grid" id="weight-grid"></div>
+      <button type="button" class="link-btn" id="reset">Standaardwaarden herstellen</button>
+    </details>
+  </section>
+
+  <section class="panel" aria-labelledby="models-h">
+    <div class="panel-head">
+      <h2 id="models-h">Welk model brengt het meest op?</h2>
+      <p class="hint" id="models-hint"></p>
+    </div>
+    <div id="model-chart" class="model-chart"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="list-h">
+    <div class="panel-head">
+      <h2 id="list-h">Beste kansen</h2>
+      <p class="hint" id="list-hint"></p>
+    </div>
+    <div class="list-head" aria-hidden="true">
+      <span>#</span><span></span><span>Auto</span><span>Bouwjaar · km</span><span>Prijs · markt</span>
+      <span id="col-value">Waarde over 5 j</span><span>Netto</span><span>Per jaar</span><span>Score</span>
+    </div>
+    <ol class="list" id="list"></ol>
+    <button type="button" class="more" id="more" hidden>Meer tonen</button>
+  </section>
+
+  <section class="panel method" aria-labelledby="method-h">
+    <h2 id="method-h">Hoe de rangschikking werkt</h2>
+    <div class="method-grid">
+      <div>
+        <h3>1. Zoeken</h3>
+        <p>Elke dag worden AutoScout24 (8 landen), 2dehands.be en Marktplaats.nl doorzocht met de filters uit <code>watchlist.toml</code>. Zoekertjes, onderdelen en miniaturen worden eruit gefilterd. Dezelfde auto op meerdere sites telt maar één keer.</p>
+      </div>
+      <div>
+        <h3>2. Marktwaarde</h3>
+        <p>De marktwaarde is de mediaanprijs van vergelijkbare advertenties (zelfde model en uitvoering), gecorrigeerd voor kilometerstand. Onder de markt kopen telt maar voor een deel mee: een lage prijs kan ook op een slechte staat wijzen.</p>
+      </div>
+      <div>
+        <h3>3. Groei per jaar</h3>
+        <p>De groei is de markttrend van het model plus correcties voor uitvoering, kilometerstand, manuele bak, brandstof en staat. Wordt de auto tijdens het stockeren 25 jaar (O-plaat), dan komt er extra groei bij. Hoe meer prijshistoriek er verzameld wordt, hoe zwaarder de echt gemeten trend meetelt.</p>
+      </div>
+      <div>
+        <h3>4. Netto resultaat</h3>
+        <p>Waarde na X jaar, min verkoopkosten, min aankoopprijs, aankoopkosten en jaarlijkse kosten (stalling, verzekering, taks, onderhoud). Dit zijn schattingen, geen garanties: controleer elke auto zelf (Car-Pass, historiek, roest).</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot" id="foot"></footer>
+</div>
+<script>
+window.LEGEND_DATA = /*INLINE:data*/null;
+</script>
+<script>
+/*INLINE:valuation.js*/
+</script>
+<script>
+/*INLINE:app.js*/
+</script>
+</body>
+</html>
