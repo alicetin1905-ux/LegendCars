@@ -19,11 +19,15 @@
 # vervangen zijn door spaties (punt tussen cijfers blijft: "2.8", "3.0").
 
 [settings]
+# Websites die doorzocht worden
+sources = ["autoscout24", "2dehands", "marktplaats", "kleinanzeigen"]
+# Bouwjaar tot en met (filter bij het zoeken; modellen die pas later begonnen worden overgeslagen)
+max_year = 1999
 # AutoScout24 landen: A=Oostenrijk B=België D=Duitsland E=Spanje F=Frankrijk I=Italië L=Luxemburg NL=Nederland
 as24_countries = ["B", "NL", "D", "L", "F", "A", "I", "E"]
 as24_max_pages = 20
-adevinta_sites = ["2dehands", "marktplaats"]
 adevinta_max_pages = 3
+kleinanzeigen_max_pages = 6
 request_delay = 1.2
 min_price = 1000
 # Woorden in de titel die op een zoekertje/onderdeel wijzen i.p.v. een te koop staande auto
@@ -31,18 +35,23 @@ title_exclude = [
   "gezocht", "gevraagd", "\\binkoop\\b", "wij kopen", "ik zoek", "\\bzoek\\b", "onderdelen", "\\bparts\\b",
   "miniatuur", "modelauto", "schaalmodel", "\\b1 18\\b", "\\b1 43\\b", "\\b1 24\\b", "brochure", "folder",
   "^velgen", "^motorblok", "^plaatwerk",
+  "\\bsuche\\b", "\\bankauf\\b", "\\bkaufe\\b", "ersatzteil", "ausschlacht", "schlachtfest", "^teile\\b",
 ]
 # Woorden die een risico aangeven (geen uitsluiting, wel lagere betrouwbaarheid)
 risk_flags = [
-  { match = "project|opknapper|restauratie|restoration|restauratieproject", label = "Project/restauratie" },
-  { match = "schade|ongeval|accident|hagel", label = "Schade" },
-  { match = "defect|motor kapot|motorschade|start niet|rijdt niet", label = "Defect" },
-  { match = "zonder papieren|geen papieren|no papers|sans papiers", label = "Geen papieren" },
+  { match = "project|opknapper|restauratie|restoration|restauratieproject|bastler|scheunenfund|restaurationsobjekt", label = "Project/restauratie" },
+  { match = "schade|ongeval|accident|hagel|unfall", label = "Schade" },
+  { match = "defect|defekt|motor kapot|motorschade|start niet|rijdt niet|getriebeschaden|springt nicht an", label = "Defect" },
+  { match = "zonder papieren|geen papieren|no papers|sans papiers|ohne papiere|ohne brief", label = "Geen papieren" },
   { match = "\\blpg\\b", label = "LPG" },
   { match = "export|marchand|handelaar", label = "Export/handelaar" },
 ]
 
 [dashboard]
+# Standaardfilters (aanpasbaar in de pagina). Er wordt breder gezocht zodat de marktwaarde klopt.
+price_min = 2500
+price_max = 9999
+max_km = 250000
 # Standaardwaarden voor de kostencalculator in het dashboard (allemaal aanpasbaar in de pagina)
 horizon_years = 5
 storage_per_month = 60      # stalling

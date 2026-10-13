@@ -16,7 +16,7 @@ from .store import Store
 
 DASHBOARD_DIR = Path(__file__).resolve().parent / "dashboard"
 DEFAULT_OUTPUT = ROOT / "docs" / "index.html"
-SOURCE_PRIORITY = {"autoscout24": 0, "2dehands": 1, "marktplaats": 2}
+SOURCE_PRIORITY = {"autoscout24": 0, "2dehands": 1, "marktplaats": 2, "kleinanzeigen": 3}
 
 
 def _dedupe_key(r: dict):

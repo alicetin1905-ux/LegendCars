@@ -18,7 +18,7 @@ from . import config
 from .export import DEFAULT_OUTPUT, build_data, render
 from .http import Fetcher
 from .matching import match, reject_reason
-from .sources import adevinta, autoscout24
+from .sources import adevinta, autoscout24, kleinanzeigen
 from .store import Store
 
 log = logging.getLogger("legendcars")
@@ -27,8 +27,7 @@ log = logging.getLogger("legendcars")
 def scrape(wl: config.Watchlist, store: Store, model_ids: list[str] | None, sources: list[str] | None, verbose: bool):
     today = date.today().isoformat()
     fetcher = Fetcher(delay=wl.settings.request_delay)
-    all_sources = ["autoscout24", *wl.settings.adevinta_sites]
-    wanted_sources = [s for s in all_sources if not sources or s in sources]
+    wanted_sources = [s for s in wl.settings.sources if not sources or s in sources]
     models = [m for m in wl.models if not model_ids or m.id in model_ids]
     totals = Counter()
     for model in models:
@@ -37,10 +36,17 @@ def scrape(wl: config.Watchlist, store: Store, model_ids: list[str] | None, sour
                 if not model.as24:
                     continue
                 result = autoscout24.search(model, wl.settings, fetcher)
-            else:
+            elif src == "kleinanzeigen":
+                if not model.query:
+                    continue
+                result = kleinanzeigen.search(model, wl.settings, fetcher)
+            elif src in adevinta.SITES:
                 if not model.query:
                     continue
                 result = adevinta.search(model, wl.settings, fetcher, src)
+            else:
+                print(f"Onbekende bron in watchlist: {src}", file=sys.stderr)
+                continue
             seen, new, rejected = set(), 0, Counter()
             for listing in result.listings:
                 m = match(listing, model, wl.settings)
@@ -78,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     for name in ("scrape", "update"):
         sp = sub.add_parser(name)
         sp.add_argument("--model", action="append", help="enkel dit model-id (herhaalbaar)")
-        sp.add_argument("--source", action="append", help="autoscout24, 2dehands of marktplaats (herhaalbaar)")
+        sp.add_argument("--source", action="append", help="autoscout24, 2dehands, marktplaats of kleinanzeigen (herhaalbaar)")
     bp = sub.add_parser("build")
     for sp in (bp, sub.choices["update"]):
         sp.add_argument("--output", default=str(DEFAULT_OUTPUT))
@@ -91,6 +97,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "models":
         for m in wl.models:
             print(f"{m.id:26s} {m.label:45s} {m.years[0]}-{m.years[1]}  trend {m.trend:+.1f}%/jaar")
+        for mid in wl.skipped:
+            print(f"{mid:26s} overgeslagen: begint na max_year {wl.settings.max_year}")
         return 0
 
     store = Store(args.data)

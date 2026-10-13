@@ -92,9 +92,11 @@ class Model:
 
 @dataclass
 class Settings:
+    sources: list[str]
+    max_year: int | None
+    kleinanzeigen_max_pages: int
     as24_countries: list[str]
     as24_max_pages: int
-    adevinta_sites: list[str]
     adevinta_max_pages: int
     request_delay: float
     min_price: int
@@ -107,6 +109,7 @@ class Watchlist:
     settings: Settings
     dashboard: dict
     models: list[Model]
+    skipped: list[str] = field(default_factory=list)  # modellen volledig na max_year
 
     def model(self, model_id: str) -> Model:
         for m in self.models:
@@ -121,9 +124,11 @@ def load(path: Path | str = DEFAULT_WATCHLIST) -> Watchlist:
 
     s = raw.get("settings", {})
     settings = Settings(
+        sources=s.get("sources", ["autoscout24", "2dehands", "marktplaats"]),
+        max_year=s.get("max_year"),
+        kleinanzeigen_max_pages=int(s.get("kleinanzeigen_max_pages", 6)),
         as24_countries=s.get("as24_countries", ["B", "NL", "D"]),
         as24_max_pages=int(s.get("as24_max_pages", 20)),
-        adevinta_sites=s.get("adevinta_sites", ["2dehands", "marktplaats"]),
         adevinta_max_pages=int(s.get("adevinta_max_pages", 3)),
         request_delay=float(s.get("request_delay", 1.0)),
         min_price=int(s.get("min_price", 1000)),
@@ -132,17 +137,24 @@ def load(path: Path | str = DEFAULT_WATCHLIST) -> Watchlist:
     )
 
     models = []
+    skipped = []
     seen = set()
     for m in raw.get("model", []):
         if m["id"] in seen:
             raise ValueError(f"Dubbel model-id in watchlist: {m['id']}")
         seen.add(m["id"])
+        years = tuple(m["years"])
+        if settings.max_year:
+            if years[0] > settings.max_year:
+                skipped.append(m["id"])
+                continue
+            years = (years[0], min(years[1], settings.max_year))
         models.append(
             Model(
                 id=m["id"],
                 make=m["make"],
                 name=m["name"],
-                years=tuple(m["years"]),
+                years=years,
                 trend=float(m["trend"]),
                 rarity=int(m.get("rarity", 3)),
                 demand=int(m.get("demand", 3)),
@@ -164,4 +176,4 @@ def load(path: Path | str = DEFAULT_WATCHLIST) -> Watchlist:
                 query=m.get("query", []),
             )
         )
-    return Watchlist(settings=settings, dashboard=raw.get("dashboard", {}), models=models)
+    return Watchlist(settings=settings, dashboard=raw.get("dashboard", {}), models=models, skipped=skipped)

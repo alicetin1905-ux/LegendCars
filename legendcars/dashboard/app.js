@@ -6,10 +6,10 @@
   var V = window.Valuation;
   if (!D || !V) return;
 
-  var STORE_KEY = "legendcars-state-v1";
+  var STORE_KEY = "legendcars-state-v2";
   var PAGE = 60;
   var CURRENT_YEAR = Number((D.today || "").slice(0, 4)) || new Date().getFullYear();
-  var SOURCE_NAMES = { autoscout24: "AutoScout24", "2dehands": "2dehands", marktplaats: "Marktplaats" };
+  var SOURCE_NAMES = { autoscout24: "AutoScout24", "2dehands": "2dehands", marktplaats: "Marktplaats", kleinanzeigen: "Kleinanzeigen" };
   var COUNTRY_NAMES = { B: "België", NL: "Nederland", D: "Duitsland", L: "Luxemburg", F: "Frankrijk", A: "Oostenrijk", I: "Italië", E: "Spanje" };
 
   var COST_FIELDS = [
@@ -38,11 +38,17 @@
   function freshState() {
     return {
       horizon: defaults.horizon_years,
-      make: "", model: "", budget: "0", country: "", source: "", sort: "score", q: "",
+      make: "", model: "", country: "", source: "", sort: "score", q: "",
+      priceMin: num(defaults.price_min), priceMax: num(defaults.price_max), maxKm: num(defaults.max_km),
       manual: false, hideRisk: true, hideLowConf: true, gainOnly: false,
       costs: pick(defaults, COST_FIELDS.map(function (f) { return f.key; })),
       weights: Object.assign({}, DEFAULT_WEIGHTS),
     };
+  }
+
+  function num(x) {
+    var n = Number(x);
+    return x === "" || x == null || isNaN(n) ? null : n;
   }
 
   function pick(obj, keys) {
@@ -110,12 +116,13 @@
 
   function filtered(rows) {
     var q = state.q.trim().toLowerCase();
-    var budget = Number(state.budget) || 0;
     return rows.filter(function (r) {
       var l = r.l;
       if (state.make && r.m.make !== state.make) return false;
       if (state.model && l.model !== state.model) return false;
-      if (budget && l.price > budget) return false;
+      if (state.priceMin != null && l.price < state.priceMin) return false;
+      if (state.priceMax != null && l.price > state.priceMax) return false;
+      if (state.maxKm != null && l.km && l.km > state.maxKm) return false;
       if (state.country && l.cc !== state.country) return false;
       if (state.source && l.src !== state.source) return false;
       if (state.manual && l.gear !== "manual") return false;
@@ -198,7 +205,9 @@
 
   function syncControls() {
     $("horizon").value = state.horizon;
-    $("f-budget").value = state.budget;
+    $("f-pmin").value = state.priceMin == null ? "" : state.priceMin;
+    $("f-pmax").value = state.priceMax == null ? "" : state.priceMax;
+    $("f-km").value = state.maxKm == null ? "" : state.maxKm;
     $("f-sort").value = state.sort;
     $("f-q").value = state.q;
     $("f-manual").checked = state.manual;
@@ -211,7 +220,13 @@
     $("horizon").addEventListener("input", function (e) { state.horizon = Number(e.target.value); update(); });
     $("f-make").addEventListener("change", function (e) { state.make = e.target.value; state.model = ""; buildModelOptions(); update(true); });
     $("f-model").addEventListener("change", function (e) { state.model = e.target.value; update(true); });
-    $("f-budget").addEventListener("change", function (e) { state.budget = e.target.value; update(true); });
+    [["f-pmin", "priceMin"], ["f-pmax", "priceMax"], ["f-km", "maxKm"]].forEach(function (pair) {
+      var t;
+      $(pair[0]).addEventListener("input", function (e) {
+        clearTimeout(t);
+        t = setTimeout(function () { state[pair[1]] = num(e.target.value); update(true); }, 250);
+      });
+    });
     $("f-country").addEventListener("change", function (e) { state.country = e.target.value; update(true); });
     $("f-source").addEventListener("change", function (e) { state.source = e.target.value; update(true); });
     $("f-sort").addEventListener("change", function (e) { state.sort = e.target.value; update(true); });

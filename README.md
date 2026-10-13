@@ -9,7 +9,7 @@ Open `docs/index.html` in je browser. Of zet GitHub Pages aan (zie hieronder), d
 - **Schuifregelaar "Stockeren voor X jaar"** (1 tot 15 jaar): alle berekeningen passen zich live aan.
 - **Welk model brengt het meest op?** Mediaan netto rendement per jaar per model, na alle kosten. Klik op een model om te filteren.
 - **Beste kansen**: elke advertentie met vraagprijs, marktwaarde, verwachte waarde na X jaar, netto winst, rendement per jaar en een investeringsscore (0-100). Klik op een rij voor de volledige rekensom en een grafiek.
-- **Filters**: merk, model, budget, land, website, enkel manueel, projecten/schade verbergen, enkel winstgevend.
+- **Filters**: merk, model, prijs van/tot (standaard €2.500-9.999), max. km (standaard 250.000), land, website, enkel manueel, projecten/schade verbergen, enkel winstgevend.
 - **Kosten en scoregewichten**: stalling, verzekering, taks, onderhoud, aankoop- en verkoopkosten. Je kiest ook zelf hoe zwaar rendement, koopjes, zeldzaamheid, vraag en betrouwbaarheid meetellen. Je instellingen worden in je browser onthouden.
 
 ## Hoe de waarde wordt ingeschat

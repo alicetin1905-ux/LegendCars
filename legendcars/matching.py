@@ -8,7 +8,7 @@ from .config import Model, Settings
 from .listing import Listing
 from .text import normalize
 
-TEXT_SOURCES = {"2dehands", "marktplaats"}
+TEXT_SOURCES = {"2dehands", "marktplaats", "kleinanzeigen"}
 MAX_VARIANT_BONUS = 6.0
 
 

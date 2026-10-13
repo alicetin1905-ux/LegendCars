@@ -54,10 +54,21 @@ class MatchingTest(unittest.TestCase):
         self.assertIsNone(reject_reason(L("Mercedes-Benz S 500 L", source="autoscout24", year=1996), model, WL.settings))
 
     def test_variant_year_range(self):
-        m = match(L("Honda S2000", year=2001), WL.model("honda-s2000"), WL.settings)
-        self.assertIn("AP1 (9000 tpm)", [v for v, _ in m.variants])
-        m = match(L("Honda S2000", year=2007), WL.model("honda-s2000"), WL.settings)
-        self.assertNotIn("AP1 (9000 tpm)", [v for v, _ in m.variants])
+        model = WL.model("toyota-celica")
+        m = match(L("Toyota Celica 1.6 ST", year=1979), model, WL.settings)
+        self.assertIn("Klassieke Celica (A/TA)", [v for v, _ in m.variants])
+        m = match(L("Toyota Celica 1.8 ST", year=1996), model, WL.settings)
+        self.assertNotIn("Klassieke Celica (A/TA)", [v for v, _ in m.variants])
+
+    def test_max_year_filter(self):
+        self.assertEqual(WL.settings.max_year, 1999)
+        self.assertEqual(WL.model("honda-s2000").years, (1999, 1999))
+        self.assertIn("bmw-z4-coupe", WL.skipped)
+        self.assertIsNotNone(reject_reason(L("Honda S2000", year=2001), WL.model("honda-s2000"), WL.settings))
+
+    def test_german_wanted_ads_rejected(self):
+        model = WL.model("vw-corrado")
+        self.assertIsNotNone(reject_reason(L("Suche VW Corrado VR6", source="kleinanzeigen", year=1993), model, WL.settings))
 
     def test_risk_flags(self):
         m = match(L("VW Corrado G60 restauratieproject", year=1990), WL.model("vw-corrado"), WL.settings)

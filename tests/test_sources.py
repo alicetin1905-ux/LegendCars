@@ -68,3 +68,25 @@ class AdevintaTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class KleinanzeigenTest(unittest.TestCase):
+    def test_parse_page(self):
+        from legendcars.sources import kleinanzeigen
+        html = (FIX / "kleinanzeigen_page.html").read_text(encoding="utf-8")
+        listings, total = kleinanzeigen.parse_page(html)
+        self.assertEqual(total, 393)
+        self.assertEqual(len(listings), 2)
+        a, b = listings
+        self.assertEqual(a.id, "kleinanzeigen:3463093500")
+        self.assertEqual(a.title, "VW Corrado Ringtool")
+        self.assertEqual((a.price, a.km, a.year, a.price_type), (7800, 252169, 1993, "FIXED"))
+        self.assertEqual(a.city, "Düren")
+        self.assertEqual(a.country, "D")
+        self.assertTrue(a.url.startswith("https://www.kleinanzeigen.de/s-anzeige/"))
+        self.assertEqual((b.price, b.price_type, b.gearbox), (22900, "MIN_BID", "automatic"))
+
+    def test_build_url(self):
+        from legendcars.sources import kleinanzeigen
+        url = kleinanzeigen.build_url("bmw z3", WL.model("bmw-z3-cabrio"), 2)
+        self.assertEqual(url, "https://www.kleinanzeigen.de/s-autos/seite:2/bmw-z3/k0c216+autos.ez_i:1995%2C1999")
