@@ -30,6 +30,9 @@ Open `docs/index.html` in je browser. Of zet GitHub Pages aan (zie hieronder), d
 | Bouwjaar | t/m 1999 | bij het zoeken (`max_year` in `watchlist.toml`) |
 | Prijs | €2.500 – €9.999 | standaardfilter in het dashboard (`price_min`/`price_max`) |
 | Kilometerstand | max. 250.000 km | standaardfilter in het dashboard (`max_km`) |
+| Afstand | max. 250 km hemelsbreed van Balen | standaardfilter in het dashboard (`home_*`, `max_distance_km`) |
+
+De afstand wordt berekend met de exacte coördinaten (2dehands, Marktplaats, Willhaben) of anders met de postcode/gemeente (postcodetabel van [GeoNames](https://www.geonames.org/), CC-BY 4.0). Het vertrekpunt staat bewust afgerond op ~1 km, want deze pagina is openbaar.
 
 Op prijs en km wordt bewust breder gezocht. Zo is de marktwaarde gebaseerd op álle vergelijkbare auto's en niet alleen op de goedkope.
 
@@ -86,4 +89,5 @@ docs/index.html             het gebouwde dashboard
 ## Opmerkingen
 
 - De scraper vraagt ongeveer één pagina per seconde op en bewaart geen namen of telefoonnummers van verkopers. Gebruik het enkel voor persoonlijk zoekwerk; de gebruiksvoorwaarden van de sites gelden.
+- Coches.net blokkeert de servers van GitHub. De dagelijkse update slaat Coches dan over; advertenties die 14 dagen niet meer gezien zijn, verdwijnen uit het dashboard.
 - Een advertentie die bij een volledige zoekopdracht niet meer opduikt, wordt als *verdwenen* gemarkeerd. Dat is waarschijnlijk verkocht, en het is nuttige data voor de werkelijke vraag per model.

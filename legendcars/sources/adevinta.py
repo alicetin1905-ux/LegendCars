@@ -64,6 +64,8 @@ def parse_listing(raw: dict, site: str) -> Listing:
         body=norm_body(attrs.get("body")),
         country=COUNTRIES.get(country.lower(), country or None),
         city=loc.get("cityName"),
+        lat=loc.get("latitude") or None,
+        lon=loc.get("longitude") or None,
         seller=None,
         image=image,
         extra={"carpass": attrs.get("carPassUrl")} if attrs.get("carPassUrl") else {},

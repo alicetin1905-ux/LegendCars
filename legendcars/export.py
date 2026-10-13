@@ -8,6 +8,7 @@ from pathlib import Path
 
 from dataclasses import fields
 
+from . import geo
 from .config import ROOT, Watchlist
 from .listing import Listing
 from .market import analyse
@@ -16,8 +17,6 @@ from .store import Store
 
 DASHBOARD_DIR = Path(__file__).resolve().parent / "dashboard"
 DEFAULT_OUTPUT = ROOT / "docs" / "index.html"
-# Bronnen gebruiken verschillende landcodes (AutoScout24 "B"/"BE", Kleinanzeigen "D" ...): alles naar ISO
-COUNTRY_ISO = {"B": "BE", "D": "DE", "A": "AT", "E": "ES", "F": "FR", "I": "IT", "L": "LU"}
 SOURCE_PRIORITY = {"autoscout24": 0, "2dehands": 1, "marktplaats": 2, "kleinanzeigen": 3, "willhaben": 4, "coches": 5}
 
 
@@ -58,6 +57,7 @@ def display_title(title: str, subtitle: str) -> str:
 
 def _compact(r: dict, today: date) -> dict:
     first = r.get("first_seen")
+    loc = geo.locate(r.get("country"), r.get("postcode"), r.get("city"), r.get("lat"), r.get("lon"))
     return {
         "id": r["id"],
         "src": r["source"],
@@ -72,7 +72,9 @@ def _compact(r: dict, today: date) -> dict:
         "gear": r.get("gearbox"),
         "body": r.get("body"),
         "hp": r.get("hp"),
-        "cc": COUNTRY_ISO.get(r.get("country"), r.get("country")),
+        "cc": geo.iso(r.get("country")),
+        "lat": round(loc[0], 2) if loc else None,
+        "lon": round(loc[1], 2) if loc else None,
         "city": r.get("city"),
         "seller": r.get("seller"),
         "img": r.get("image"),

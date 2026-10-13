@@ -6,7 +6,7 @@
   var V = window.Valuation;
   if (!D || !V) return;
 
-  var STORE_KEY = "legendcars-state-v4";
+  var STORE_KEY = "legendcars-state-v5";
   var PAGE = 60;
   var CURRENT_YEAR = Number((D.today || "").slice(0, 4)) || new Date().getFullYear();
   var SOURCE_NAMES = { autoscout24: "AutoScout24", "2dehands": "2dehands", marktplaats: "Marktplaats", kleinanzeigen: "Kleinanzeigen", willhaben: "Willhaben", coches: "Coches.net" };
@@ -41,6 +41,7 @@
       horizon: defaults.horizon_years,
       make: "", model: "", country: "", source: "", sort: "score", q: "",
       priceMin: num(defaults.price_min), priceMax: num(defaults.price_max), maxKm: num(defaults.max_km),
+      maxDist: num(defaults.max_distance_km),
       manual: false, hideRisk: true, hideLowConf: true, gainOnly: false,
       costs: pick(defaults, COST_FIELDS.map(function (f) { return f.key; })),
       weights: Object.assign({}, DEFAULT_WEIGHTS),
@@ -104,6 +105,23 @@
   var models = D.models || {};
   var listings = (D.listings || []).filter(function (l) { return models[l.model]; });
 
+  var HOME = defaults.home_lat != null && defaults.home_lon != null
+    ? { lat: Number(defaults.home_lat), lon: Number(defaults.home_lon), label: defaults.home_label || "thuis" }
+    : null;
+
+  /* Hemelsbrede afstand in km. */
+  function distanceKm(lat, lon) {
+    if (!HOME || lat == null || lon == null) return null;
+    var rad = Math.PI / 180;
+    var dLat = (lat - HOME.lat) * rad;
+    var dLon = (lon - HOME.lon) * rad;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(HOME.lat * rad) * Math.cos(lat * rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 2 * 6371 * Math.asin(Math.sqrt(a));
+  }
+
+  listings.forEach(function (l) { l.dist = distanceKm(l.lat, l.lon); });
+
   function compute() {
     var p = params();
     return listings.map(function (l) {
@@ -124,6 +142,7 @@
       if (state.priceMin != null && l.price < state.priceMin) return false;
       if (state.priceMax != null && l.price > state.priceMax) return false;
       if (state.maxKm != null && l.km && l.km > state.maxKm) return false;
+      if (HOME && state.maxDist != null && (l.dist == null || l.dist > state.maxDist)) return false;
       if (state.country && l.cc !== state.country) return false;
       if (state.source && l.src !== state.source) return false;
       if (state.manual && l.gear !== "manual") return false;
@@ -141,6 +160,7 @@
     annual: function (a, b) { return b.proj.annual - a.proj.annual; },
     deal: function (a, b) { return b.l.fair / b.l.price - a.l.fair / a.l.price; },
     price: function (a, b) { return a.l.price - b.l.price; },
+    dist: function (a, b) { return (a.l.dist == null ? 1e9 : a.l.dist) - (b.l.dist == null ? 1e9 : b.l.dist); },
     new: function (a, b) { return (a.l.days == null ? 1e9 : a.l.days) - (b.l.days == null ? 1e9 : b.l.days); },
   };
 
@@ -209,6 +229,7 @@
     $("f-pmin").value = state.priceMin == null ? "" : state.priceMin;
     $("f-pmax").value = state.priceMax == null ? "" : state.priceMax;
     $("f-km").value = state.maxKm == null ? "" : state.maxKm;
+    $("f-dist").value = state.maxDist == null ? "" : state.maxDist;
     $("f-sort").value = state.sort;
     $("f-q").value = state.q;
     $("f-manual").checked = state.manual;
@@ -221,7 +242,7 @@
     $("horizon").addEventListener("input", function (e) { state.horizon = Number(e.target.value); update(); });
     $("f-make").addEventListener("change", function (e) { state.make = e.target.value; state.model = ""; buildModelOptions(); update(true); });
     $("f-model").addEventListener("change", function (e) { state.model = e.target.value; update(true); });
-    [["f-pmin", "priceMin"], ["f-pmax", "priceMax"], ["f-km", "maxKm"]].forEach(function (pair) {
+    [["f-pmin", "priceMin"], ["f-pmax", "priceMax"], ["f-km", "maxKm"], ["f-dist", "maxDist"]].forEach(function (pair) {
       var t;
       $(pair[0]).addEventListener("input", function (e) {
         clearTimeout(t);
@@ -420,7 +441,8 @@
       '<div class="row-main" tabindex="0" role="button" aria-expanded="' + open + '">' +
       '<span class="rank">' + (i + 1) + "</span>" + thumb(l, m) +
       '<div class="car"><a class="car-title" href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.title) + '</a><div class="car-model">' + esc(m.make + " " + m.name) + " · " +
-      esc(COUNTRY_NAMES[l.cc] || l.cc || "") + (l.city ? " · " + esc(l.city) : "") + "</div>" + chips(l, m) + adLinks(l) + "</div>" +
+      esc(COUNTRY_NAMES[l.cc] || l.cc || "") + (l.city ? " · " + esc(l.city) : "") +
+      (l.dist != null ? ' · <span class="dist">' + int.format(Math.round(l.dist)) + " km</span>" : "") + "</div>" + chips(l, m) + adLinks(l) + "</div>" +
       '<div class="num c-yk"><span class="lbl">Bouwjaar · km</span><div class="main">' + (l.year || "–") + '</div><div class="sub2">' + fmtKm(l.km) + "</div></div>" +
       '<div class="num c-price"><span class="lbl">Prijs · markt</span><div class="main">' + fmtEur(l.price) + '</div><div class="sub2">' + dealTxt + "</div></div>" +
       '<div class="num c-value"><span class="lbl">Waarde over ' + yearsLabel(state.horizon) + '</span><div class="main">' + fmtEur(p.value) + '</div><div class="sub2">' + fmtRate(p.ratePct) + " per jaar</div></div>" +
@@ -513,7 +535,11 @@
     var shown = rows.slice(0, limit);
     $("col-value").textContent = "Waarde over " + yearsLabel(state.horizon);
     var sortLabel = $("f-sort").options[$("f-sort").selectedIndex].text.toLowerCase();
-    $("list-hint").textContent = int.format(rows.length) + " auto's, gesorteerd op " + sortLabel + ". Klik op een rij voor de rekensom.";
+    var distNote = "";
+    if (HOME && state.maxDist != null) {
+      distNote = " Binnen " + int.format(state.maxDist) + " km van " + HOME.label + " (hemelsbreed).";
+    }
+    $("list-hint").textContent = int.format(rows.length) + " auto's, gesorteerd op " + sortLabel + "." + distNote + " Klik op een rij voor de rekensom.";
     $("list").innerHTML = shown.length ? shown.map(rowHtml).join("") : '<li class="empty">Geen auto\'s gevonden met deze filters.</li>';
     $("more").hidden = rows.length <= limit;
     $("more").textContent = "Meer tonen (" + int.format(rows.length - limit) + " resterend)";
@@ -539,6 +565,8 @@
     persist();
   }
 
+  if (HOME) $("f-dist-label").textContent = "Max. afstand van " + HOME.label + " (km)";
+  else $("f-dist").closest(".field").hidden = true;
   buildFilterOptions();
   buildCostFields();
   syncControls();

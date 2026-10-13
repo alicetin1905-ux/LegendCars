@@ -40,6 +40,13 @@ def parse_page(html: str) -> dict:
     return json.loads(m.group(1))["props"]["pageProps"]["searchResult"]
 
 
+def _coord(value: str | None, i: int) -> float | None:
+    try:
+        return float(value.split(",")[i]) if value else None
+    except (ValueError, IndexError):
+        return None
+
+
 def parse_advert(ad: dict) -> Listing:
     attrs = {a["name"]: (a.get("values") or [None])[0] for a in ad.get("attributes", {}).get("attribute", [])}
     images = (ad.get("advertImageList") or {}).get("advertImage") or []
@@ -67,6 +74,9 @@ def parse_advert(ad: dict) -> Listing:
         hp=round(kw * 1.36) if kw else None,
         country="A",
         city=attrs.get("LOCATION"),
+        postcode=attrs.get("POSTCODE"),
+        lat=_coord(attrs.get("COORDINATES"), 0),
+        lon=_coord(attrs.get("COORDINATES"), 1),
         seller=seller,
         image=images[0].get("mainImageUrl") if images else None,
     )

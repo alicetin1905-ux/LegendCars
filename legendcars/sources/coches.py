@@ -27,6 +27,9 @@ BODY_IDS = {2: "coupe", 3: "cabrio"}
 _PROPS = re.compile(r'window\.__INITIAL_PROPS__\s*=\s*JSON\.parse\("(.*?)"\);', re.S)
 
 _cache: dict[tuple[str, int], tuple[list[Listing], bool, list[str]]] = {}
+# Coches.net blokkeert sommige netwerken (bv. GitHub Actions). Na een geblokkeerde eerste pagina
+# slaan we de rest van de run over in plaats van elk merk opnieuw te proberen.
+_blocked = False
 
 
 def make_slug(make: str) -> str:
@@ -81,11 +84,14 @@ def _get_with_retry(url: str, fetcher: Fetcher, attempts: int = 3) -> dict:
 
 
 def _fetch_make(make: str, settings: Settings, fetcher: Fetcher) -> tuple[list[Listing], bool, list[str]]:
+    global _blocked
     slug = make_slug(make)
     max_year = settings.max_year or 2100
     key = (slug, max_year)
     if key in _cache:
         return _cache[key]
+    if _blocked:
+        return [], False, ["coches.net geblokkeerd vanaf dit netwerk, overgeslagen"]
     listings: list[Listing] = []
     errors: list[str] = []
     complete = True
@@ -98,6 +104,8 @@ def _fetch_make(make: str, settings: Settings, fetcher: Fetcher) -> tuple[list[L
             log.warning("Coches.net %s pagina %s: %s", make, page, e)
             errors.append(f"{url}: {e}")
             complete = False
+            if page == 1 and isinstance(e, ValueError):
+                _blocked = True
             break
         items = res.get("items") or []
         # Onbekende merk-URL -> coches.net toont alle merken. Dat willen we niet doorzoeken.

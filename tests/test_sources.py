@@ -128,3 +128,24 @@ class CochesTest(unittest.TestCase):
         self.assertEqual(coches.make_slug("Alfa Romeo"), "alfa_romeo")
         self.assertEqual(coches.make_slug("Mercedes-Benz"), "mercedes-benz")
         self.assertEqual(coches.build_url("bmw", 1999, 3), "https://www.coches.net/bmw/segunda-mano/?MaxYear=1999&pg=3")
+
+
+class GeoTest(unittest.TestCase):
+    def test_locate_and_distance(self):
+        from legendcars import geo
+        balen = (51.17, 5.17)
+        self.assertEqual(geo.locate("B", "2490"), (51.168, 5.17))
+        self.assertAlmostEqual(geo.haversine_km(*balen, *geo.locate("D", "52351")), 102, delta=5)
+        self.assertIsNotNone(geo.locate("NL", "8401 DT"))
+        self.assertIsNotNone(geo.locate("DE", None, "Düren"))
+        self.assertEqual(geo.locate("BE", None, None, 51.2, 4.4), (51.2, 4.4))
+        self.assertIsNone(geo.locate(None, "1000"))
+        self.assertEqual(geo.iso("D"), "DE")
+
+    def test_sources_capture_location(self):
+        from legendcars.sources import kleinanzeigen, willhaben
+        a, _ = kleinanzeigen.parse_page((FIX / "kleinanzeigen_page.html").read_text(encoding="utf-8"))[0]
+        self.assertEqual(a.postcode, "52351")
+        sr = willhaben.parse_page((FIX / "willhaben_page.html").read_text(encoding="utf-8"))
+        w = willhaben.parse_advert(sr["advertSummaryList"]["advertSummary"][0])
+        self.assertAlmostEqual(w.lat, 46.94, places=1)

@@ -19,6 +19,7 @@ KM_EFFECT_PER_10K = 0.01  # 1% marktwaarde per 10.000 km verschil met de mediaan
 KM_EFFECT_CAP = 0.25
 # Marktwaarde > 2x de vraagprijs is eerder een verkeerde match of een wrak dan een koopje
 SUSPICIOUS_DEAL = 2.0
+STALE_DAYS = 14  # niet meer gezien sinds zoveel dagen -> niet meer tonen (bv. site geblokkeerd)
 UNRELIABLE_FLAGS = {"Project/restauratie", "Defect", "Geen papieren", "Schade"}
 
 
@@ -161,7 +162,8 @@ def clean_km(r: dict, current_year: int) -> dict:
 def analyse(records: list[dict], watchlist: Watchlist, history: list[tuple[str, str, int]]) -> tuple[list[dict], dict]:
     """Geeft (verrijkte actieve advertenties, modelstatistieken) terug."""
     current_year = date.today().year
-    records = [clean_km(r, current_year) for r in records]
+    cutoff = date.fromordinal(date.today().toordinal() - STALE_DAYS).isoformat()
+    records = [clean_km(r, current_year) for r in records if not r.get("last_seen") or r["last_seen"] >= cutoff]
     models = {m.id: m for m in watchlist.models}
     min_price = watchlist.settings.min_price
     active = [

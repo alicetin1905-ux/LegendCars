@@ -56,6 +56,11 @@ risk_flags = [
 price_min = 2500
 price_max = 9999
 max_km = 250000
+# Vertrekpunt voor de afstandsfilter (hemelsbreed). Bewust afgerond op ~1 km: deze pagina is openbaar.
+home_label = "Balen"
+home_lat = 51.17
+home_lon = 5.17
+max_distance_km = 250
 # Standaardwaarden voor de kostencalculator in het dashboard (allemaal aanpasbaar in de pagina)
 horizon_years = 5
 storage_per_month = 0       # stalling

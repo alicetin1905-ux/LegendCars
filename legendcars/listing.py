@@ -25,6 +25,9 @@ class Listing:
     hp: int | None = None
     country: str | None = None
     city: str | None = None
+    postcode: str | None = None
+    lat: float | None = None
+    lon: float | None = None
     seller: str | None = None  # dealer | private
     image: str | None = None
     model_id: str | None = None  # watchlist-model waarvoor de zoekopdracht liep

@@ -69,7 +69,7 @@ def parse_article(chunk: str) -> Listing | None:
 
     price = km = year = None
     price_type = "UNKNOWN"
-    city = None
+    city = plz = None
     for t in texts:
         if price is None and (m := _PRICE.match(t)):
             price = parse_int(m.group(1))
@@ -79,7 +79,7 @@ def parse_article(chunk: str) -> Listing | None:
         elif year is None and (m := _EZ.match(t)):
             year = int(m.group(2))
         elif city is None and (m := _PLZ.match(t)):
-            city = m.group(2)
+            plz, city = m.group(1), m.group(2)
 
     title = (meta.get("title") or "").strip()
     if not title:
@@ -101,6 +101,7 @@ def parse_article(chunk: str) -> Listing | None:
         body=_body_from_title(title),
         country="D",
         city=city,
+        postcode=plz,
         image=meta.get("contentUrl"),
     )
 

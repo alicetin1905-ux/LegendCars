@@ -35,6 +35,7 @@
       <div class="field"><label for="f-pmin">Prijs vanaf (€)</label><input id="f-pmin" type="number" min="0" step="500" inputmode="numeric"></div>
       <div class="field"><label for="f-pmax">Prijs tot (€)</label><input id="f-pmax" type="number" min="0" step="500" inputmode="numeric"></div>
       <div class="field"><label for="f-km">Max. km</label><input id="f-km" type="number" min="0" step="10000" inputmode="numeric"></div>
+      <div class="field"><label for="f-dist" id="f-dist-label">Max. afstand (km)</label><input id="f-dist" type="number" min="0" step="25" inputmode="numeric" placeholder="geen limiet"></div>
       <div class="field"><label for="f-country">Land</label><select id="f-country"></select></div>
       <div class="field"><label for="f-source">Website</label><select id="f-source"></select></div>
       <div class="field"><label for="f-sort">Sorteren op</label>
@@ -45,6 +46,7 @@
           <option value="deal">Koopje t.o.v. markt</option>
           <option value="price">Prijs (laag → hoog)</option>
           <option value="new">Nieuwste eerst</option>
+          <option value="dist">Dichtstbij</option>
         </select>
       </div>
       <div class="field grow"><label for="f-q">Zoeken in titel</label><input id="f-q" type="search" placeholder="bv. vr6, hardtop, m3"></div>

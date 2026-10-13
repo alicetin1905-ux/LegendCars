@@ -237,3 +237,5 @@ select:focus-visible, input:focus-visible, button:focus-visible, summary:focus-v
 @media (prefers-reduced-motion: no-preference) {
   .m-bar, .score .s-bar i { transition: width 0.25s ease, left 0.25s ease; }
 }
+
+.dist { font-weight: 600; color: var(--ink); white-space: nowrap; }

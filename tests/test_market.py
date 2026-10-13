@@ -96,3 +96,9 @@ class CleanKmTest(unittest.TestCase):
         self.assertIsNone(clean_km({"km": 1000, "year": 1990}, 2026)["km"])
         self.assertEqual(clean_km({"km": 1000, "year": 2024}, 2026)["km"], 1000)
         self.assertEqual(clean_km({"km": 85_000, "year": 1990}, 2026)["km"], 85_000)
+
+
+class StaleTest(unittest.TestCase):
+    def test_listings_not_seen_for_two_weeks_are_dropped(self):
+        rows, _ = analyse([rec(1, 9_000, last_seen="2000-01-01"), rec(2, 9_000)], WL, [])
+        self.assertEqual([r["id"] for r in rows], ["t:2"])

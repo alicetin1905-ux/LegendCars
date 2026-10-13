@@ -75,6 +75,7 @@ def parse_listing(raw: dict, body_hint: str | None = None) -> Listing:
         hp=hp,
         country=loc.get("countryCode"),
         city=(loc.get("city") or "").title() or None,
+        postcode=loc.get("zip"),
         seller="dealer" if seller.get("type") == "Dealer" else "private" if seller.get("type") else None,
         image=images[0] if images else None,
     )
