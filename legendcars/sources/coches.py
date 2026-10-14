@@ -15,7 +15,7 @@ from dataclasses import replace
 from ..config import Model, Settings
 from ..http import Fetcher
 from ..listing import Listing, norm_fuel
-from ..text import normalize
+from ..text import normalize, parse_date
 from . import SearchResult
 
 log = logging.getLogger(__name__)
@@ -65,6 +65,7 @@ def parse_item(item: dict) -> Listing:
         body=BODY_IDS.get(item.get("bodyTypeId")),
         hp=item.get("hp") or None,
         country="E",
+        posted=parse_date(item.get("creationDate")),
         city=loc.get("cityLiteral") or loc.get("mainProvince"),
         seller="dealer" if item.get("isProfessional") else "private",
         image=item.get("imgUrl") or item.get("img"),

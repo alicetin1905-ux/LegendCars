@@ -239,3 +239,20 @@ select:focus-visible, input:focus-visible, button:focus-visible, summary:focus-v
 }
 
 .dist { font-weight: 600; color: var(--ink); white-space: nowrap; }
+
+/* Staat, favorieten, onderhandelen */
+.chip.good { background: var(--accent-soft); color: var(--good); }
+.fav-btn { font: inherit; font-size: 0.8rem; font-weight: 600; line-height: 1.6; padding: 1px 9px; border-radius: 6px; border: 1px solid var(--brass); background: none; color: var(--brass); cursor: pointer; white-space: nowrap; }
+.fav-btn.on { background: var(--brass); color: var(--surface); }
+.nego { margin: 8px 0 0; padding: 6px 10px; border-radius: 7px; background: var(--brass-soft); color: var(--brass); font-size: 0.88rem; font-weight: 600; }
+.note-lbl { display: block; margin-top: 12px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.note { width: 100%; margin-top: 4px; font: inherit; font-size: 0.9rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 7px 9px; resize: vertical; }
+.table-wrap { overflow-x: auto; }
+.fav-table { border-collapse: collapse; font-size: 0.88rem; font-variant-numeric: tabular-nums; min-width: 100%; }
+.fav-table th, .fav-table td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.fav-table thead th { min-width: 170px; max-width: 240px; font-weight: 600; }
+.fav-table tbody th { color: var(--muted); font-weight: 500; white-space: nowrap; }
+.fav-table a { color: var(--ink); }
+.unfav { margin-left: 6px; border: 0; background: none; color: var(--muted); cursor: pointer; font: inherit; }
+.unfav:hover { color: var(--bad); }
+.note-cell { white-space: pre-wrap; color: var(--muted); }

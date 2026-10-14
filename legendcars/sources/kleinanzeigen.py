@@ -11,7 +11,7 @@ import urllib.parse
 from ..config import Model, Settings
 from ..http import Fetcher
 from ..listing import Listing
-from ..text import normalize, parse_int
+from ..text import normalize, parse_date, parse_int
 from . import SearchResult
 
 log = logging.getLogger(__name__)
@@ -28,6 +28,7 @@ _STRIP = re.compile(r"<script.*?</script>|<svg.*?</svg>", re.S)
 _TEXT = re.compile(r">([^<]+)<")
 _PRICE = re.compile(r"^([\d.]+)\s*€(\s*VB)?$")
 _KM = re.compile(r"^([\d.]+)\s*km$")
+_DATE = re.compile(r"^(Heute|Gestern|\d{2}\.\d{2}\.\d{4})")
 _EZ = re.compile(r"^EZ\s*(\d{1,2})/(\d{4})$")
 _PLZ = re.compile(r"^(\d{5})\s+(.+)$")
 _TOTAL = re.compile(r"([\d.]+)\s*Ergebnisse")
@@ -69,11 +70,15 @@ def parse_article(chunk: str) -> Listing | None:
 
     price = km = year = None
     price_type = "UNKNOWN"
-    city = plz = None
+    city = plz = posted = old_price = None
     for t in texts:
         if price is None and (m := _PRICE.match(t)):
             price = parse_int(m.group(1))
             price_type = "MIN_BID" if m.group(2) else "FIXED"  # VB = Verhandlungsbasis
+        elif price is not None and old_price is None and (m := _PRICE.match(t)):
+            old_price = parse_int(m.group(1))  # doorstreepte vroegere prijs
+        elif posted is None and _DATE.match(t):
+            posted = parse_date(t)
         elif km is None and (m := _KM.match(t)):
             km = parse_int(m.group(1))
         elif year is None and (m := _EZ.match(t)):
@@ -102,6 +107,8 @@ def parse_article(chunk: str) -> Listing | None:
         country="D",
         city=city,
         postcode=plz,
+        posted=posted,
+        old_price=old_price if old_price and price and old_price > price else None,
         image=meta.get("contentUrl"),
     )
 

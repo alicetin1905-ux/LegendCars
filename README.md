@@ -19,7 +19,7 @@ Open `docs/index.html` in je browser. Of zet GitHub Pages aan (zie hieronder), d
 
 - **Schuifregelaar "Stockeren voor X jaar"** (1 tot 15 jaar): alle berekeningen passen zich live aan.
 - **Welk model brengt het meest op?** Mediaan netto rendement per jaar per model, na alle kosten. Klik op een model om te filteren.
-- **Beste kansen**: elke advertentie met vraagprijs, marktwaarde, verwachte waarde na X jaar, netto winst, rendement per jaar en een investeringsscore (0-100). Klik op een rij voor de volledige rekensom en een grafiek.
+- **Beste kansen**: elke advertentie met vraagprijs, marktwaarde, staat, verwachte waarde na X jaar, netto winst, rendement per jaar en een investeringsscore (0-100). Klik op een rij voor de volledige rekensom en een grafiek.
 - **Filters**: merk, model, prijs van/tot (standaard €2.500-9.999), max. km (standaard 250.000), land, website, enkel manueel, projecten/schade verbergen, enkel winstgevend.
 - **Kosten en scoregewichten**: stalling, verzekering, taks, onderhoud, aankoop- en verkoopkosten. Je kiest ook zelf hoe zwaar rendement, koopjes, zeldzaamheid, vraag en betrouwbaarheid meetellen. Je instellingen worden in je browser onthouden.
 
@@ -35,6 +35,19 @@ Open `docs/index.html` in je browser. Of zet GitHub Pages aan (zie hieronder), d
 De afstand wordt berekend met de exacte coördinaten (2dehands, Marktplaats, Willhaben) of anders met de postcode/gemeente (postcodetabel van [GeoNames](https://www.geonames.org/), CC-BY 4.0). Het vertrekpunt staat bewust afgerond op ~1 km, want deze pagina is openbaar.
 
 Op prijs en km wordt bewust breder gezocht. Zo is de marktwaarde gebaseerd op álle vergelijkbare auto's en niet alleen op de goedkope.
+
+## Dagelijkse melding van nieuwe kansen
+
+Na elke update kijkt `legendcars/alerts.mjs` naar auto's die **vandaag nieuw online** kwamen of **vandaag in prijs zakten**, binnen je standaardfilters (prijs, km, afstand, geen risico's) en met een investeringsscore van minstens `alert_min_score` (standaard 80). Zijn er zulke auto's, dan maakt de update een **GitHub-issue "🚗 N nieuwe kansen"** met links naar de advertenties; de melding van gisteren wordt gesloten.
+
+- **Melding op je gsm:** installeer de GitHub-app en zet meldingen aan (je krijgt ze ook per e-mail). Je bent automatisch "watcher" van je eigen repo.
+- **Liever Telegram?** Maak met @BotFather een bot, stuur hem een bericht en voeg in GitHub twee secrets toe (Settings → Secrets and variables → Actions): `TELEGRAM_BOT_TOKEN` en `TELEGRAM_CHAT_ID`. Dan komt dezelfde lijst ook via Telegram.
+
+## Staat, prijsdalingen en favorieten
+
+- **Staat:** voor de auto's binnen je filters wordt de volledige advertentie gelezen (`python -m legendcars details`, zit in de dagelijkse update). Pluspunten (Car-Pass/NAP, onderhoudshistoriek, 1e eigenaar, garagewagen, oldtimerplaat, keuring, roestvrij, origineel) en minpunten (roest, ongeval, motorproblemen, tuning, geen keuring, vervangen motor, lak/deuken) geven een staat-score van −4 tot +4. Die telt mee in de groei (max. ±1%/jaar) en in de score. De beschrijving zelf wordt niet bewaard; telefoonnummers en e-mailadressen worden uit opgeslagen teksten verwijderd.
+- **Prijsdalingen en tijd online:** badges "Prijs −€X" en "57 d online", filter "Enkel prijsdalingen", sorteren op "Grootste prijsdaling". Vanaf 45 dagen online krijg je een onderhandelingstip.
+- **Favorieten:** klik "☆ Bewaar" bij een auto, voeg notities toe in het detailpaneel en vergelijk je favorieten naast elkaar bovenaan. Favorieten en notities worden in je browser bewaard (per toestel).
 
 ## Hoe de waarde wordt ingeschat
 

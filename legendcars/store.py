@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from pathlib import Path
 
 from .config import ROOT
@@ -15,6 +16,15 @@ from .listing import Listing
 from .matching import Match
 
 DATA_DIR = ROOT / "data"
+# Beschrijvingen bevatten soms telefoonnummers/e-mailadressen: niet mee opslaan in een openbare repo
+_PHONE = re.compile(r"(?:\+|00)?\d[\d\s./()-]{7,}\d")
+_EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
+
+
+def scrub(text: str | None) -> str | None:
+    if not text:
+        return text
+    return _EMAIL.sub("[e-mail]", _PHONE.sub(lambda m: m.group(0) if len(re.sub(r"\D", "", m.group(0))) < 9 else "[tel]", text))
 
 
 class Store:
@@ -33,6 +43,7 @@ class Store:
                 for line in fh:
                     if line.strip():
                         rec = json.loads(line)
+                        rec["description"] = scrub(rec.get("description"))
                         self.records[rec["id"]] = rec
         for lid, _date, price in self.history():
             self._last_price[lid] = price
@@ -47,12 +58,17 @@ class Store:
     def upsert(self, listing: Listing, match: Match, today: str) -> bool:
         """Slaat de advertentie op; geeft True terug als ze nieuw is."""
         rec = listing.to_dict()
+        rec["description"] = scrub(rec.get("description"))
         rec["variants"] = [[label, bonus] for label, bonus in match.variants]
         rec["flags"] = match.flags
         old = self.records.get(listing.id)
         is_new = old is None
         rec["first_seen"] = today if is_new else old.get("first_seen", today)
         rec["first_price"] = listing.price if is_new else old.get("first_price", listing.price)
+        if old and old.get("detail"):
+            rec["detail"] = old["detail"]  # details blijven bewaard tussen runs
+        if old and not rec.get("posted") and old.get("posted"):
+            rec["posted"] = old["posted"]
         rec["last_seen"] = today
         rec["active"] = True
         rec.pop("removed", None)

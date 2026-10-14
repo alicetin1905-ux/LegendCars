@@ -15,6 +15,7 @@ from collections import Counter
 from datetime import date
 
 from . import config
+from . import details
 from .export import DEFAULT_OUTPUT, build_data, render
 from .http import Fetcher
 from .matching import match, reject_reason
@@ -87,6 +88,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--data", default=str(config.ROOT / "data"))
     p.add_argument("-v", "--verbose", action="store_true")
     sub = p.add_subparsers(dest="cmd", required=True)
+    dp = sub.add_parser("details", help="detailpagina's van de kandidaten ophalen (staat, publicatiedatum)")
+    dp.add_argument("--limit", type=int, default=800)
     for name in ("scrape", "update"):
         sp = sub.add_parser(name)
         sp.add_argument("--model", action="append", help="enkel dit model-id (herhaalbaar)")
@@ -113,6 +116,11 @@ def main(argv: list[str] | None = None) -> int:
         if totals["matched"] == 0 and totals["errors"] > 0:
             print("Geen enkele advertentie opgehaald — sites onbereikbaar of geblokkeerd?", file=sys.stderr)
             return 2
+    if args.cmd in ("details", "update"):
+        st = details.enrich(list(store.records.values()), wl, Fetcher(delay=wl.settings.request_delay),
+                            date.today().isoformat(), limit=getattr(args, "limit", 800))
+        store.save()
+        print(f"Details: {st['ok']} opgehaald, {st['gone']} verdwenen, {st['failed']} mislukt (van {st['todo']})")
     if args.cmd in ("build", "update"):
         data = build_data(wl, store)
         out = render(data, args.output)

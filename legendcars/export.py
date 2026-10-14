@@ -9,6 +9,7 @@ from pathlib import Path
 from dataclasses import fields
 
 from . import geo
+from .condition import assess
 from .config import ROOT, Watchlist
 from .listing import Listing
 from .market import analyse
@@ -55,8 +56,14 @@ def display_title(title: str, subtitle: str) -> str:
     return f"{title} {subtitle}"
 
 
-def _compact(r: dict, today: date) -> dict:
+def _compact(r: dict, today: date, moves: dict | None = None) -> dict:
     first = r.get("first_seen")
+    detail = r.get("detail") or {}
+    posted = detail.get("posted") or r.get("posted")
+    since = min(x for x in [posted, first] if x) if (posted or first) else None
+    mv = (moves or {}).get(r["id"], {})
+    top = max(x for x in [mv.get("max"), r.get("old_price"), r.get("first_price"), r["price"]] if x)
+    drop = top - r["price"] if top > r["price"] else 0
     loc = geo.locate(r.get("country"), r.get("postcode"), r.get("city"), r.get("lat"), r.get("lon"))
     return {
         "id": r["id"],
@@ -86,7 +93,15 @@ def _compact(r: dict, today: date) -> dict:
         "conf": r.get("conf"),
         "rate": r.get("rate"),
         "first": first,
-        "days": (today - date.fromisoformat(first)).days if first else None,
+        "posted": posted,
+        "days": (today - date.fromisoformat(since)).days if since else None,
+        "drop": drop,
+        "dropPct": round(drop / top, 3) if drop else 0,
+        "changed": mv.get("changed") if drop else None,
+        "cond": r.get("cond"),
+        "owners": detail.get("owners"),
+        "views": detail.get("views"),
+        "favs": detail.get("favs"),
         "firstPrice": r.get("first_price"),
         "also": r.get("also", []),
     }
@@ -106,21 +121,41 @@ def rematch(records: list[dict], watchlist: Watchlist) -> list[dict]:
         m = match(Listing(**{k: v for k, v in rec.items() if k in _LISTING_FIELDS}), model, watchlist.settings)
         if m is None:
             continue
-        out.append({**rec, "variants": [[label, bonus] for label, bonus in m.variants], "flags": m.flags})
+        detail = rec.get("detail") or {}
+        if detail.get("cond"):
+            cond = {**detail["cond"], "src": "detail"}
+        else:
+            c = assess(" ".join(x for x in [rec.get("title"), rec.get("subtitle"), rec.get("description")] if x))
+            cond = {**c.to_dict(), "src": "lijst"}
+        out.append({**rec, "variants": [[label, bonus] for label, bonus in m.variants], "flags": m.flags, "cond": cond})
+    return out
+
+
+def price_moves(history) -> dict[str, dict]:
+    """Per advertentie: hoogste waargenomen prijs en datum van de laatste prijswijziging."""
+    out: dict[str, dict] = {}
+    for lid, d, price in history:
+        cur = out.setdefault(lid, {"max": price, "last": price, "changed": None})
+        if price != cur["last"]:
+            cur["changed"] = d
+        cur["max"] = max(cur["max"], price)
+        cur["last"] = price
     return out
 
 
 def build_data(watchlist: Watchlist, store: Store, today: date | None = None) -> dict:
     today = today or date.today()
     records = rematch(list(store.records.values()), watchlist)
-    rows, stats = analyse(records, watchlist, list(store.history()))
+    history = list(store.history())
+    rows, stats = analyse(records, watchlist, history)
+    moves = price_moves(history)
     rows = dedupe(rows)
     return {
         "generated": datetime.now(timezone.utc).isoformat(timespec="minutes"),
         "today": today.isoformat(),
         "defaults": watchlist.dashboard,
         "models": stats,
-        "listings": [_compact(r, today) for r in rows],
+        "listings": [_compact(r, today, moves) for r in rows],
     }
 
 

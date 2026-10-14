@@ -5,6 +5,8 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
+  // Standaardgewichten van de investeringsscore (dashboard én dagelijkse melding)
+  var DEFAULT_WEIGHTS = { ret: 45, deal: 15, rarity: 10, demand: 10, conf: 5, cond: 15 };
   var OLDTIMER_AGE = 30; // standaard; instelbaar via params.oldtimer_age (watchlist.toml [dashboard])
   var MIN_RATE = -5;
   var MAX_RATE = 15;
@@ -104,6 +106,7 @@
       rarity: (((model && model.rarity) || 3) - 1) / 4,
       demand: (((model && model.demand) || 3) - 1) / 4,
       conf: listing.conf == null ? 0.5 : listing.conf,
+      cond: listing.cond && listing.cond.score != null ? clamp((listing.cond.score + 4) / 8, 0, 1) : 0.5,
     };
     var total = 0;
     var weight = 0;
@@ -117,6 +120,7 @@
 
   return {
     OLDTIMER_AGE: OLDTIMER_AGE,
+    DEFAULT_WEIGHTS: DEFAULT_WEIGHTS,
     oldtimerAge: oldtimerAge,
     ageAdjustment: ageAdjustment,
     rateParts: rateParts,

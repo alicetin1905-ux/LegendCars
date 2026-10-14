@@ -57,6 +57,7 @@ def parse_listing(raw: dict, body_hint: str | None = None) -> Listing:
         m = _HP.search(details["speedometer"])
         hp = int(m.group(1)) if m else None
     price = (raw.get("price") or {}).get("priceRaw")
+    old_price = parse_int((raw.get("superDeal") or {}).get("oldPriceFormatted"))
     images = raw.get("images") or []
     title = " ".join(x for x in [v.get("make"), v.get("model")] if x)
     return Listing(
@@ -76,6 +77,7 @@ def parse_listing(raw: dict, body_hint: str | None = None) -> Listing:
         country=loc.get("countryCode"),
         city=(loc.get("city") or "").title() or None,
         postcode=loc.get("zip"),
+        old_price=old_price if old_price and price and old_price > int(price) else None,
         seller="dealer" if seller.get("type") == "Dealer" else "private" if seller.get("type") else None,
         image=images[0] if images else None,
     )

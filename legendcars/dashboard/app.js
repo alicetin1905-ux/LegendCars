@@ -6,7 +6,8 @@
   var V = window.Valuation;
   if (!D || !V) return;
 
-  var STORE_KEY = "legendcars-state-v5";
+  var STORE_KEY = "legendcars-state-v6";
+  var FAV_KEY = "legendcars-favs-v1";
   var PAGE = 60;
   var CURRENT_YEAR = Number((D.today || "").slice(0, 4)) || new Date().getFullYear();
   var SOURCE_NAMES = { autoscout24: "AutoScout24", "2dehands": "2dehands", marktplaats: "Marktplaats", kleinanzeigen: "Kleinanzeigen", willhaben: "Willhaben", coches: "Coches.net" };
@@ -28,8 +29,9 @@
     { key: "rarity", label: "Zeldzaamheid" },
     { key: "demand", label: "Vraag bij liefhebbers" },
     { key: "conf", label: "Betrouwbaarheid data" },
+    { key: "cond", label: "Staat (uit advertentie)" },
   ];
-  var DEFAULT_WEIGHTS = { ret: 50, deal: 15, rarity: 10, demand: 15, conf: 10 };
+  var DEFAULT_WEIGHTS = V.DEFAULT_WEIGHTS;
 
   var defaults = Object.assign(
     { horizon_years: 5, storage_per_month: 0, insurance_per_year: 0, tax_per_year: 0, maintenance_per_year: 0, buy_costs: 500, sell_pct: 0, deal_credit: 50, oldtimer_age: 30 },
@@ -42,7 +44,7 @@
       make: "", model: "", country: "", source: "", sort: "score", q: "",
       priceMin: num(defaults.price_min), priceMax: num(defaults.price_max), maxKm: num(defaults.max_km),
       maxDist: num(defaults.max_distance_km),
-      manual: false, hideRisk: true, hideLowConf: true, gainOnly: false,
+      manual: false, hideRisk: true, hideLowConf: true, gainOnly: false, dropsOnly: false, favsOnly: false,
       costs: pick(defaults, COST_FIELDS.map(function (f) { return f.key; })),
       weights: Object.assign({}, DEFAULT_WEIGHTS),
     };
@@ -70,11 +72,24 @@
     }
   } catch (e) { /* geen opslag beschikbaar: standaardwaarden */ }
 
+  /* Favorieten + notities: bewaard in deze browser (niet online gedeeld). */
+  var favs = {};
+  try { favs = JSON.parse(localStorage.getItem(FAV_KEY) || "{}") || {}; } catch (e) { favs = {}; }
+  function saveFavs() {
+    try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch (e) { /* negeren */ }
+  }
+  function toggleFav(l) {
+    if (favs[l.id]) delete favs[l.id];
+    else favs[l.id] = { note: "", saved: D.today, snap: { title: l.title, price: l.price, url: l.url, src: l.src, model: l.model, img: l.img } };
+    saveFavs();
+  }
+
   function persist() {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* negeren */ }
   }
 
   var limit = PAGE;
+  var LONG_ONLINE = 45; // dagen: vanaf dan is er meestal ruimte om te onderhandelen
   var openId = null;
 
   /* ---------- formattering ---------- */
@@ -120,7 +135,8 @@
     return 2 * 6371 * Math.asin(Math.sqrt(a));
   }
 
-  listings.forEach(function (l) { l.dist = distanceKm(l.lat, l.lon); });
+  var byId = {};
+  listings.forEach(function (l) { l.dist = distanceKm(l.lat, l.lon); byId[l.id] = l; });
 
   function compute() {
     var p = params();
@@ -149,6 +165,8 @@
       if (state.hideRisk && l.flags.some(function (f) { return RISK[f]; })) return false;
       if (state.hideLowConf && l.conf < 0.5) return false;
       if (state.gainOnly && r.proj.net <= 0) return false;
+      if (state.dropsOnly && !(l.drop > 0)) return false;
+      if (state.favsOnly && !favs[l.id]) return false;
       if (q && (l.title + " " + l.variants.join(" ")).toLowerCase().indexOf(q) === -1) return false;
       return true;
     });
@@ -160,6 +178,8 @@
     annual: function (a, b) { return b.proj.annual - a.proj.annual; },
     deal: function (a, b) { return b.l.fair / b.l.price - a.l.fair / a.l.price; },
     price: function (a, b) { return a.l.price - b.l.price; },
+    drop: function (a, b) { return (b.l.dropPct || 0) - (a.l.dropPct || 0); },
+    cond: function (a, b) { return ((b.l.cond || {}).score || 0) - ((a.l.cond || {}).score || 0) || b.score - a.score; },
     dist: function (a, b) { return (a.l.dist == null ? 1e9 : a.l.dist) - (b.l.dist == null ? 1e9 : b.l.dist); },
     new: function (a, b) { return (a.l.days == null ? 1e9 : a.l.days) - (b.l.days == null ? 1e9 : b.l.days); },
   };
@@ -236,6 +256,8 @@
     $("f-risk").checked = state.hideRisk;
     $("f-conf").checked = state.hideLowConf;
     $("f-gain").checked = state.gainOnly;
+    $("f-drops").checked = state.dropsOnly;
+    $("f-favs").checked = state.favsOnly;
   }
 
   function bind() {
@@ -261,6 +283,15 @@
     $("f-risk").addEventListener("change", function (e) { state.hideRisk = e.target.checked; update(true); });
     $("f-conf").addEventListener("change", function (e) { state.hideLowConf = e.target.checked; update(true); });
     $("f-gain").addEventListener("change", function (e) { state.gainOnly = e.target.checked; update(true); });
+    $("f-drops").addEventListener("change", function (e) { state.dropsOnly = e.target.checked; update(true); });
+    $("f-favs").addEventListener("change", function (e) { state.favsOnly = e.target.checked; update(true); });
+    $("fav-panel").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-unfav]");
+      if (!b) return;
+      delete favs[b.getAttribute("data-unfav")];
+      saveFavs();
+      update();
+    });
     $("cost-grid").addEventListener("input", function (e) {
       var k = e.target.getAttribute("data-cost");
       if (!k) return;
@@ -297,12 +328,24 @@
       if (state.model) $("list-h").scrollIntoView({ behavior: "smooth", block: "start" });
     });
     $("list").addEventListener("click", function (e) {
-      if (e.target.closest("a")) return;
+      var star = e.target.closest("[data-fav]");
+      if (star) {
+        var lst = byId[star.getAttribute("data-fav")];
+        if (lst) { toggleFav(lst); update(); }
+        return;
+      }
+      if (e.target.closest("a, textarea, .detail")) return;
       var row = e.target.closest("[data-id]");
       if (!row) return;
       var id = row.getAttribute("data-id");
       openId = openId === id ? null : id;
       update();
+    });
+    $("list").addEventListener("input", function (e) {
+      var id = e.target.getAttribute("data-note");
+      if (!id || !favs[id]) return;
+      favs[id].note = e.target.value;
+      saveFavs();
     });
     $("list").addEventListener("keydown", function (e) {
       if ((e.key === "Enter" || e.key === " ") && e.target.matches(".row-main")) {
@@ -417,6 +460,12 @@
     if (l.gear === "manual") out.push('<span class="chip plain">Manueel</span>');
     else if (l.gear === "automatic") out.push('<span class="chip plain">Automaat</span>');
     if (l.pt === "MIN_BID") out.push('<span class="chip plain">Bieden</span>');
+    if (l.drop > 0) out.push('<span class="chip good">Prijs −' + fmtEur(l.drop).replace("€", "€") + "</span>");
+    if (l.days != null && l.days <= 2 && l.posted) out.push('<span class="chip good">Nieuw</span>');
+    else if (l.days != null && l.days >= LONG_ONLINE) out.push('<span class="chip plain">' + l.days + " d online</span>");
+    var c = l.cond || {};
+    (c.pos || []).slice(0, 3).forEach(function (x) { out.push('<span class="chip good">✓ ' + esc(x) + "</span>"); });
+    (c.neg || []).slice(0, 3).forEach(function (x) { out.push('<span class="chip risk">✗ ' + esc(x) + "</span>"); });
     l.flags.forEach(function (f) { out.push('<span class="chip risk">' + esc(f) + "</span>"); });
     return out.length ? '<div class="chips">' + out.join("") + "</div>" : "";
   }
@@ -424,7 +473,10 @@
   /* Directe links naar de advertentie (en dezelfde auto op andere sites). */
   function adLinks(l) {
     var links = [{ src: l.src, url: l.url }].concat(l.also || []);
-    return '<div class="ad-links">' + links.map(function (a, i) {
+    var fav = !!favs[l.id];
+    return '<div class="ad-links"><button type="button" class="fav-btn' + (fav ? " on" : "") + '" data-fav="' + esc(l.id) +
+      '" aria-pressed="' + fav + '" title="' + (fav ? "Uit favorieten halen" : "Bewaren als favoriet") + '">' + (fav ? "★ Favoriet" : "☆ Bewaar") + "</button>" +
+      links.map(function (a, i) {
       return '<a class="ad-link' + (i ? " alt" : "") + '" href="' + esc(a.url) + '" target="_blank" rel="noopener">' +
         (i ? "" : "Bekijk op ") + esc(SOURCE_NAMES[a.src] || a.src) + ' <span aria-hidden="true">↗</span></a>';
     }).join("") + "</div>";
@@ -479,8 +531,26 @@
     if (l.body) facts.push({ cabrio: "cabrio", coupe: "coupé" }[l.body] || l.body);
     if (l.city) facts.push(l.city);
     if (l.seller) facts.push(l.seller === "dealer" ? "handelaar" : "particulier");
-    var seen = l.days != null ? (l.days === 0 ? "vandaag voor het eerst gezien" : "online sinds " + fmtDate(l.first) + " (" + l.days + " d)") : "";
-    var drop = l.firstPrice && l.firstPrice > l.price ? " · prijs gezakt van " + fmtEur(l.firstPrice) : "";
+    var since = l.posted && (!l.first || l.posted < l.first) ? l.posted : l.first;
+    var seen = l.days != null ? (l.days === 0 ? "vandaag online gekomen" : "online sinds " + fmtDate(since) + " (" + l.days + " dagen)") : "";
+    var drop = l.drop > 0 ? " · prijs gezakt met " + fmtEur(l.drop) + " (" + Math.round(l.dropPct * 100) + "%)" : "";
+    var c = l.cond || {};
+    var condSrc = c.src === "detail" ? "uit de volledige advertentie" : "uit de korte tekst (volledige advertentie nog niet gelezen)";
+    var condHtml = '<h4 style="margin-top:14px">Staat ' + (c.score > 0 ? "+" : "") + String(c.score || 0).replace(".", ",") + " <span class=\"hint\">" + esc(condSrc) + "</span></h4>" +
+      ((c.pos || []).length || (c.neg || []).length
+        ? '<div class="chips">' + (c.pos || []).map(function (x) { return '<span class="chip good">✓ ' + esc(x) + "</span>"; }).join("") +
+          (c.neg || []).map(function (x) { return '<span class="chip risk">✗ ' + esc(x) + "</span>"; }).join("") + "</div>"
+        : '<p class="hint">Geen duidelijke plus- of minpunten gevonden.</p>');
+    var extra = [];
+    if (l.owners) extra.push(l.owners + (l.owners === 1 ? " eigenaar" : " eigenaars"));
+    if (l.views) extra.push(int.format(l.views) + " keer bekeken" + (l.favs ? ", " + l.favs + "× bewaard" : ""));
+    var nego = "";
+    if (l.days != null && l.days >= LONG_ONLINE) nego = "Al " + l.days + " dagen online: er is meestal ruimte om 5-10% lager te bieden.";
+    else if (l.drop > 0) nego = "De verkoper zakte al in prijs: hij is gemotiveerd om te verkopen.";
+    var noteHtml = favs[l.id]
+      ? '<label class="note-lbl" for="note-' + esc(l.id) + '">Jouw notities</label><textarea class="note" id="note-' + esc(l.id) + '" data-note="' + esc(l.id) +
+        '" rows="3" placeholder="bv. gebeld op 14/10, roest aan dorpels, bod €7.500">' + esc(favs[l.id].note || "") + "</textarea>"
+      : '<p class="hint">Bewaar deze auto als favoriet om notities toe te voegen.</p>';
 
     var links = '<a class="btn" href="' + esc(l.url) + '" target="_blank" rel="noopener">Bekijk op ' + esc(SOURCE_NAMES[l.src] || l.src) + "</a>" +
       l.also.map(function (a) {
@@ -489,12 +559,13 @@
 
     return '<div class="detail">' +
       "<div><h4>Groei per jaar</h4><dl class=\"kv\">" + rateRows + "</dl>" +
-      '<p class="hint" style="margin-top:8px">' + esc(facts.join(" · ")) + (seen ? "<br>" + esc(seen + drop) : "") + "</p></div>" +
+      '<p class="hint" style="margin-top:8px">' + esc(facts.join(" · ")) + (seen ? "<br>" + esc(seen + drop) : "") +
+      (extra.length ? "<br>" + esc(extra.join(" · ")) : "") + "</p>" + (nego ? '<p class="nego">' + esc(nego) + "</p>" : "") + condHtml + "</div>" +
       "<div><h4>Rekensom</h4><dl class=\"kv\">" + costRows + "</dl>" +
       '<p class="hint" style="margin-top:8px">Betrouwbaarheid ' + Math.round(l.conf * 100) + "% · zeldzaamheid " + m.rarity + "/5 · vraag " + m.demand + "/5</p></div>" +
       '<div class="chart"><h4>Waarde vs. totale investering</h4>' + chartSvg(V.series(l, par, CURRENT_YEAR)) +
       '<div class="legend"><span><i class="sw" style="background:var(--accent)"></i>Waarde auto</span><span><i class="sw" style="background:var(--brass)"></i>Geïnvesteerd (aankoop + kosten)</span></div>' +
-      '<div class="links">' + links + "</div></div>" +
+      '<div class="links">' + links + "</div>" + noteHtml + "</div>" +
       "</div>";
   }
 
@@ -555,6 +626,39 @@
     return rows;
   }
 
+  function renderFavs(all) {
+    var ids = Object.keys(favs);
+    $("fav-panel").hidden = !ids.length;
+    $("f-favs").closest(".check").hidden = !ids.length;
+    if (!ids.length) return;
+    var byRow = {};
+    all.forEach(function (r) { byRow[r.l.id] = r; });
+    var cols = ids.map(function (id) { return { id: id, r: byRow[id], f: favs[id] }; });
+    function cell(c, fn) { return c.r ? fn(c.r) : '<span class="hint">niet meer online</span>'; }
+    var rowsDef = [
+      ["Prijs", function (r) { return fmtEur(r.l.price) + (r.l.drop > 0 ? ' <span class="pos">(−' + fmtEur(r.l.drop) + ")</span>" : ""); }],
+      ["Marktwaarde", function (r) { return r.l.comps >= 4 ? fmtEur(r.l.fair) : "onbekend"; }],
+      ["Bouwjaar · km", function (r) { return (r.l.year || "–") + " · " + fmtKm(r.l.km); }],
+      ["Afstand", function (r) { return r.l.dist != null ? int.format(Math.round(r.l.dist)) + " km" : "–"; }],
+      ["Staat", function (r) { var c = r.l.cond || {}; return (c.score > 0 ? "+" : "") + String(c.score || 0).replace(".", ",") + ((c.pos || []).length ? '<br><span class="hint">✓ ' + esc(c.pos.join(", ")) + "</span>" : "") + ((c.neg || []).length ? '<br><span class="neg">✗ ' + esc(c.neg.join(", ")) + "</span>" : ""); }],
+      ["Online", function (r) { return r.l.days != null ? r.l.days + " dagen" : "–"; }],
+      ["Waarde over " + yearsLabel(state.horizon), function (r) { return fmtEur(r.proj.value); }],
+      ["Netto", function (r) { return '<span class="' + (r.proj.net >= 0 ? "pos" : "neg") + '">' + fmtSigned(r.proj.net) + "</span>"; }],
+      ["Per jaar", function (r) { return fmtPct(r.proj.annual); }],
+      ["Score", function (r) { return "<strong>" + Math.round(r.score) + "</strong>"; }],
+    ];
+    var head = "<tr><th></th>" + cols.map(function (c) {
+      var t = c.r ? c.r.l.title : c.f.snap.title;
+      var url = c.r ? c.r.l.url : c.f.snap.url;
+      return '<th><a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(t) + '</a><button type="button" class="unfav" data-unfav="' + esc(c.id) + '" title="Uit favorieten halen">✕</button></th>';
+    }).join("") + "</tr>";
+    var body = rowsDef.map(function (def) {
+      return "<tr><th>" + esc(def[0]) + "</th>" + cols.map(function (c) { return "<td>" + cell(c, def[1]) + "</td>"; }).join("") + "</tr>";
+    }).join("") + "<tr><th>Notities</th>" + cols.map(function (c) { return '<td class="note-cell">' + esc(c.f.note || "") + "</td>"; }).join("") + "</tr>";
+    $("fav-count").textContent = ids.length + (ids.length === 1 ? " auto" : " auto's") + " · bewaard in deze browser";
+    $("fav-table").innerHTML = "<thead>" + head + "</thead><tbody>" + body + "</tbody>";
+  }
+
   function update(resetLimit) {
     if (resetLimit) limit = PAGE;
     $("horizon-out").textContent = yearsLabel(state.horizon);
@@ -562,6 +666,7 @@
     var rows = renderList(all);
     renderModelChart(all);
     renderKpis(all, rows);
+    renderFavs(all);
     persist();
   }
 

@@ -70,7 +70,10 @@ maintenance_per_year = 0    # onderhoud tijdens stockage
 buy_costs = 500             # transport, keuring, inschrijving
 sell_pct = 0                # verkoopkosten in % (veiling/commissie/advertentie)
 deal_credit = 50            # % van het verschil tussen marktwaarde en vraagprijs dat je meetelt bij een koopje
-oldtimer_age = 30           # vanaf deze leeftijd geldt de oldtimerregeling (extra waardegroei rond die grens)
+oldtimer_age = 30
+# Dagelijkse melding (GitHub-issue, optioneel Telegram): nieuwe auto's en prijsdalingen binnen de filters hierboven
+alert_min_score = 80        # minimale investeringsscore (0-100)
+alert_max_items = 15           # vanaf deze leeftijd geldt de oldtimerregeling (extra waardegroei rond die grens)
 
 # ─────────────────────────────── Alfa Romeo ───────────────────────────────
 

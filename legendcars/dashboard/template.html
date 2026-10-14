@@ -47,6 +47,8 @@
           <option value="price">Prijs (laag → hoog)</option>
           <option value="new">Nieuwste eerst</option>
           <option value="dist">Dichtstbij</option>
+          <option value="drop">Grootste prijsdaling</option>
+          <option value="cond">Beste staat</option>
         </select>
       </div>
       <div class="field grow"><label for="f-q">Zoeken in titel</label><input id="f-q" type="search" placeholder="bv. vr6, hardtop, m3"></div>
@@ -56,6 +58,8 @@
       <label class="check"><input type="checkbox" id="f-risk" checked> Verberg risico's (project, schade, verdacht lage prijs)</label>
       <label class="check"><input type="checkbox" id="f-conf" checked> Verberg lage betrouwbaarheid</label>
       <label class="check"><input type="checkbox" id="f-gain"> Enkel met winst</label>
+      <label class="check"><input type="checkbox" id="f-drops"> Enkel prijsdalingen</label>
+      <label class="check"><input type="checkbox" id="f-favs"> Enkel favorieten</label>
     </div>
     <details class="costs" id="costs">
       <summary>Kosten en scoregewichten</summary>
@@ -64,6 +68,14 @@
       <div class="cost-grid" id="weight-grid"></div>
       <button type="button" class="link-btn" id="reset">Standaardwaarden herstellen</button>
     </details>
+  </section>
+
+  <section class="panel" id="fav-panel" aria-labelledby="fav-h" hidden>
+    <div class="panel-head">
+      <h2 id="fav-h">Jouw favorieten</h2>
+      <p class="hint" id="fav-count"></p>
+    </div>
+    <div class="table-wrap"><table class="fav-table" id="fav-table"></table></div>
   </section>
 
   <section class="panel" aria-labelledby="models-h">
@@ -92,19 +104,19 @@
     <div class="method-grid">
       <div>
         <h3>1. Zoeken</h3>
-        <p>Elke dag worden AutoScout24 (8 landen), 2dehands.be, Marktplaats.nl, Kleinanzeigen.de, Willhaben.at en Coches.net doorzocht met de filters uit <code>watchlist.toml</code>. Zoekertjes, onderdelen en miniaturen worden eruit gefilterd. Dezelfde auto op meerdere sites telt maar één keer.</p>
+        <p>Elke ochtend worden AutoScout24, 2dehands.be, Marktplaats.nl, Kleinanzeigen.de, Willhaben.at en Coches.net doorzocht met de filters uit <code>watchlist.toml</code>. Zoekertjes en onderdelen vallen weg; dezelfde auto op meerdere sites telt één keer.</p>
       </div>
       <div>
         <h3>2. Marktwaarde</h3>
-        <p>De marktwaarde is de mediaanprijs van vergelijkbare advertenties (zelfde model en uitvoering), gecorrigeerd voor kilometerstand. Onder de markt kopen telt maar voor een deel mee: een lage prijs kan ook op een slechte staat wijzen.</p>
+        <p>Vergelijkbare advertenties (zelfde model en uitvoering) bepalen de marktwaarde, rekening houdend met bouwjaar en kilometerstand. Onder de markt kopen telt maar voor de helft mee: een lage prijs kan ook op een slechte staat wijzen.</p>
       </div>
       <div>
-        <h3>3. Groei per jaar</h3>
-        <p>De groei is de markttrend van het model plus correcties voor uitvoering, kilometerstand, manuele bak, brandstof en staat. Wordt de auto tijdens het stockeren een oldtimer (30 jaar, instelbaar), dan komt er extra groei bij: goedkopere taks en verzekering trekken meer kopers aan. Hoe meer prijshistoriek er verzameld wordt, hoe zwaarder de echt gemeten trend meetelt.</p>
+        <h3>3. Staat</h3>
+        <p>Voor de auto's binnen je filters wordt de volledige advertentie gelezen. Pluspunten zoals Car-Pass, onderhoudshistoriek, 1e eigenaar, garagewagen of keuring en minpunten zoals roest, ongeval, motorproblemen of tuning wegen mee in de groei en de score.</p>
       </div>
       <div>
-        <h3>4. Netto resultaat</h3>
-        <p>Waarde na X jaar, min aankoopprijs en aankoopkosten (standaard €500). Stalling, verzekering, taks, onderhoud en verkoopkosten staan standaard op €0; je kunt ze invullen onder "Kosten en scoregewichten". Dit zijn schattingen, geen garanties: controleer elke auto zelf (Car-Pass, historiek, roest).</p>
+        <h3>4. Groei en netto</h3>
+        <p>Groei = markttrend van het model + uitvoering, kilometerstand, bak, staat en extra groei als de auto tijdens het stockeren oldtimer wordt. Netto = waarde na X jaar min aankoopprijs en kosten. Schattingen, geen garanties: bekijk elke auto zelf.</p>
       </div>
     </div>
   </section>

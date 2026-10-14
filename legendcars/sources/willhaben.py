@@ -10,7 +10,7 @@ import urllib.parse
 from ..config import Model, Settings
 from ..http import Fetcher
 from ..listing import Listing, norm_body, norm_fuel, norm_gearbox
-from ..text import parse_int
+from ..text import parse_date, parse_int
 from . import SearchResult
 
 log = logging.getLogger(__name__)
@@ -75,6 +75,7 @@ def parse_advert(ad: dict) -> Listing:
         country="A",
         city=attrs.get("LOCATION"),
         postcode=attrs.get("POSTCODE"),
+        posted=parse_date(attrs.get("PUBLISHED_String")),
         lat=_coord(attrs.get("COORDINATES"), 0),
         lon=_coord(attrs.get("COORDINATES"), 1),
         seller=seller,

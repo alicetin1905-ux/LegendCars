@@ -8,7 +8,7 @@ import urllib.parse
 from ..config import Model, Settings
 from ..http import Fetcher
 from ..listing import Listing, norm_body, norm_fuel, norm_gearbox
-from ..text import parse_int, parse_year
+from ..text import parse_date, parse_int, parse_year
 from . import SearchResult
 
 log = logging.getLogger(__name__)
@@ -64,6 +64,7 @@ def parse_listing(raw: dict, site: str) -> Listing:
         body=norm_body(attrs.get("body")),
         country=COUNTRIES.get(country.lower(), country or None),
         city=loc.get("cityName"),
+        posted=parse_date(raw.get("date")),
         lat=loc.get("latitude") or None,
         lon=loc.get("longitude") or None,
         seller=None,

@@ -105,8 +105,9 @@ def gearbox_adjustment(model: Model, gearbox: str | None) -> float:
     return 0.5 if gearbox == "manual" else -1.0
 
 
-def condition_adjustment(flags: list[str]) -> float:
-    adj = 0.0
+def condition_adjustment(flags: list[str], cond: dict | None = None) -> float:
+    """Risicowoorden + staat uit de tekst: auto's in topstaat stijgen sneller in waarde (max. ±1%/jaar)."""
+    adj = max(-1.0, min(1.0, 0.25 * ((cond or {}).get("score") or 0)))
     if "Schade" in flags:
         adj -= 1.0
     if "Defect" in flags:
@@ -222,6 +223,8 @@ def analyse(records: list[dict], watchlist: Watchlist, history: list[tuple[str, 
         conf -= 0.2 * len(set(r.get("flags", [])) & UNRELIABLE_FLAGS)
         if suspicious:
             conf -= 0.3
+        if (r.get("cond") or {}).get("src") == "detail":
+            conf += 0.05  # volledige advertentie gelezen
         conf = round(max(0.1, min(1.0, conf)), 2)
 
         trend, _w = blended_trend(model, trends.get(model.id))
@@ -239,7 +242,7 @@ def analyse(records: list[dict], watchlist: Watchlist, history: list[tuple[str, 
                 "km": km_adjustment(r.get("km")),
                 "gearbox": gearbox_adjustment(model, r.get("gearbox")),
                 "fuel": -1.0 if r.get("fuel") == "diesel" else 0.0,
-                "condition": condition_adjustment(r.get("flags", [])),
+                "condition": round(condition_adjustment(r.get("flags", []), r.get("cond")), 2),
             },
         })
 

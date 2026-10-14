@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
   group: legendcars-update
@@ -40,4 +41,26 @@ jobs:
             git add docs
             git diff --cached --quiet || git commit -m "Dashboard opnieuw gebouwd"
             git push
+          fi
+      - name: Melding nieuwe topkansen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DASHBOARD_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          n=$(node legendcars/alerts.mjs docs/index.html "$RUNNER_TEMP")
+          echo "Kansen vandaag: $n"
+          if [ "$n" -gt 0 ]; then
+            gh label create topkansen --color 0E5A43 --description "Dagelijkse melding van LegendCars" --force
+            for old in $(gh issue list --label topkansen --state open --json number --jq '.[].number'); do
+              gh issue close "$old" --comment "Vervangen door de melding van vandaag."
+            done
+            if [ "$n" -eq 1 ]; then titel="1 nieuwe kans"; else titel="$n nieuwe kansen"; fi
+            gh issue create --title "🚗 $titel – $(date -u +%d/%m/%Y)" --body-file "$RUNNER_TEMP/alerts.md" --label topkansen
+            if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+              curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+                -d chat_id="$TELEGRAM_CHAT_ID" -d disable_web_page_preview=true \
+                --data-urlencode text@"$RUNNER_TEMP/alerts.txt" > /dev/null
+            fi
           fi

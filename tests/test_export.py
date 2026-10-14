@@ -71,3 +71,11 @@ class CountryTest(unittest.TestCase):
         self.assertEqual(_compact({**base, "country": "D"}, date(2026, 10, 13))["cc"], "DE")
         self.assertEqual(_compact({**base, "country": "DE"}, date(2026, 10, 13))["cc"], "DE")
         self.assertEqual(_compact({**base, "country": "NL"}, date(2026, 10, 13))["cc"], "NL")
+
+
+class ScrubTest(unittest.TestCase):
+    def test_phone_and_email_removed(self):
+        from legendcars.store import scrub
+        self.assertEqual(scrub("Bel 0475/867056 of +32 475 86 70 56"), "Bel [tel] of [tel]")
+        self.assertEqual(scrub("mail jan.peeters@telenet.be"), "mail [e-mail]")
+        self.assertEqual(scrub("BMW 2.8 uit 1998, 116.000 km"), "BMW 2.8 uit 1998, 116.000 km")

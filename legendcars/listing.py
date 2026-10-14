@@ -28,6 +28,8 @@ class Listing:
     postcode: str | None = None
     lat: float | None = None
     lon: float | None = None
+    posted: str | None = None  # datum waarop de advertentie online kwam (YYYY-MM-DD), indien bekend
+    old_price: int | None = None  # vroegere prijs volgens de site zelf (doorstreepte prijs)
     seller: str | None = None  # dealer | private
     image: str | None = None
     model_id: str | None = None  # watchlist-model waarvoor de zoekopdracht liep

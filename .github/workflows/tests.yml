@@ -17,4 +17,4 @@ jobs:
         with:
           node-version: "22"
       - run: python -m unittest discover -s tests -t . -v
-      - run: node --test tests/valuation.test.mjs
+      - run: node --test tests/valuation.test.mjs tests/alerts.test.mjs
