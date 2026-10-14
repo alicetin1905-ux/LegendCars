@@ -38,7 +38,7 @@ Op prijs en km wordt bewust breder gezocht. Zo is de marktwaarde gebaseerd op á
 
 ## Dagelijkse melding van nieuwe kansen
 
-Na elke update kijkt `legendcars/alerts.mjs` naar auto's die **vandaag nieuw online** kwamen of **vandaag in prijs zakten**, binnen je standaardfilters (prijs, km, afstand, geen risico's) en met een investeringsscore van minstens `alert_min_score` (standaard 80). Zijn er zulke auto's, dan maakt de update een **GitHub-issue "🚗 N nieuwe kansen"** met links naar de advertenties; de melding van gisteren wordt gesloten.
+Na elke update kijkt `legendcars/alerts.mjs` naar auto's die **vandaag nieuw online** kwamen of **vandaag in prijs zakten**, binnen je standaardfilters (prijs, km, afstand, geen risico's) en met een investeringsscore van minstens `alert_min_score` (standaard 75). Zijn er zulke auto's, dan maakt de update een **GitHub-issue "🚗 N nieuwe kansen"** met links naar de advertenties; de melding van gisteren wordt gesloten.
 
 - **Melding op je gsm:** installeer de GitHub-app en zet meldingen aan (je krijgt ze ook per e-mail). Je bent automatisch "watcher" van je eigen repo.
 - **Liever Telegram?** Maak met @BotFather een bot, stuur hem een bericht en voeg in GitHub twee secrets toe (Settings → Secrets and variables → Actions): `TELEGRAM_BOT_TOKEN` en `TELEGRAM_CHAT_ID`. Dan komt dezelfde lijst ook via Telegram.
