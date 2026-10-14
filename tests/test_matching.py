@@ -117,3 +117,25 @@ class BodyInTextTest(unittest.TestCase):
     def test_spanish_bmw_title(self):
         m = match(L("BMW Serie 3 328I CABRIOLET", source="coches", year=1996, body="cabrio"), WL.model("bmw-e36-coupe-cabrio"), WL.settings)
         self.assertIsNotNone(m)
+
+
+class SuggestedModelsTest(unittest.TestCase):
+    def test_suggested_flag(self):
+        self.assertTrue(WL.model("bmw-e30").suggested)
+        self.assertFalse(WL.model("vw-corrado").suggested)
+
+    def test_e30_vs_e36(self):
+        e30, e36 = WL.model("bmw-e30"), WL.model("bmw-e36-coupe-cabrio")
+        self.assertIsNone(reject_reason(L("BMW E30 325i Cabrio", year=1989, body="cabrio"), e30, WL.settings))
+        self.assertIsNotNone(reject_reason(L("BMW E30 325i Cabrio", year=1989, body="cabrio"), e36, WL.settings))
+        self.assertIsNotNone(reject_reason(L("BMW E36 328i Coupe", year=1996, body="coupe"), e30, WL.settings))
+
+    def test_golf2_gti_not_golf1_cabrio(self):
+        g2 = WL.model("vw-golf2-gti")
+        self.assertIsNone(reject_reason(L("VW Golf 2 GTI 16V", year=1988), g2, WL.settings))
+        self.assertIsNotNone(reject_reason(L("VW Golf 1 GTI Cabrio", year=1988), g2, WL.settings))
+
+    def test_w124_coupe_excludes_ce24(self):
+        m = WL.model("mercedes-w124-coupe")
+        self.assertIsNone(reject_reason(L("Mercedes 230 CE Coupe", year=1990, body="coupe"), m, WL.settings))
+        self.assertIsNotNone(reject_reason(L("Mercedes 300 CE-24 Coupe", year=1990, body="coupe"), m, WL.settings))

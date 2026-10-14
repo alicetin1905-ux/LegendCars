@@ -55,7 +55,7 @@ export function selectAlerts(data) {
     const proj = V.project(l, params, year);
     const score = V.score(l, m, proj, V.DEFAULT_WEIGHTS).value;
     if (score < minScore || proj.net <= 0) continue;
-    out.push({ l, m, proj, score, dist, kind: isNew ? "nieuw" : "prijsdaling" });
+    out.push({ l, m, proj, score, dist, kind: isNew ? "nieuw" : "prijsdaling", advice: V.bidAdvice(l, params, year) });
   }
   out.sort((a, b) => b.score - a.score);
   return out.slice(0, maxItems);
@@ -75,11 +75,12 @@ function line(a, md, ctx) {
     `score ${Math.round(a.score)}`,
   ].filter(Boolean).join(" · ");
   const price = a.kind === "prijsdaling" ? `${eur.format(l.price)} (−${eur.format(l.drop)})` : eur.format(l.price);
+  const adv = a.advice && a.advice.worth ? ` · bied ${eur.format(a.advice.bid)}, max. ${eur.format(a.advice.max)}` : "";
   const staat = [plus && `✓ ${plus}`, min && `✗ ${min}`].filter(Boolean).join("  ");
   if (md) {
-    return `- **[${l.title}](${l.url})** — ${price}  \n  ${a.m.make} ${a.m.name} · ${bits}${staat ? `  \n  ${staat}` : ""} · _${SOURCE_NAMES[l.src] || l.src}_`;
+    return `- **[${l.title}](${l.url})** — ${price}${adv}  \n  ${a.m.make} ${a.m.name} · ${bits}${staat ? `  \n  ${staat}` : ""} · _${SOURCE_NAMES[l.src] || l.src}_`;
   }
-  return `• ${l.title} — ${price}\n  ${bits}${staat ? `\n  ${staat}` : ""}\n  ${l.url}`;
+  return `• ${l.title} — ${price}${adv}\n  ${bits}${staat ? `\n  ${staat}` : ""}\n  ${l.url}`;
 }
 
 export function render(data, alerts, dashboardUrl) {

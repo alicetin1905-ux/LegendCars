@@ -6,7 +6,7 @@
   var V = window.Valuation;
   if (!D || !V) return;
 
-  var STORE_KEY = "legendcars-state-v6";
+  var STORE_KEY = "legendcars-state-v7";
   var FAV_KEY = "legendcars-favs-v1";
   var PAGE = 60;
   var CURRENT_YEAR = Number((D.today || "").slice(0, 4)) || new Date().getFullYear();
@@ -22,6 +22,7 @@
     { key: "sell_pct", label: "Verkoopkosten", unit: "% van waarde", step: 0.5 },
     { key: "deal_credit", label: "Koopje telt mee", unit: "% van verschil", step: 5 },
     { key: "oldtimer_age", label: "Oldtimer vanaf", unit: "jaar oud", step: 1 },
+    { key: "target_return", label: "Minimum rendement", unit: "% per jaar (biedadvies)", step: 1 },
   ];
   var WEIGHT_FIELDS = [
     { key: "ret", label: "Verwacht rendement" },
@@ -34,7 +35,7 @@
   var DEFAULT_WEIGHTS = V.DEFAULT_WEIGHTS;
 
   var defaults = Object.assign(
-    { horizon_years: 5, storage_per_month: 0, insurance_per_year: 0, tax_per_year: 0, maintenance_per_year: 0, buy_costs: 500, sell_pct: 0, deal_credit: 50, oldtimer_age: 30 },
+    { horizon_years: 5, storage_per_month: 0, insurance_per_year: 0, tax_per_year: 0, maintenance_per_year: 0, buy_costs: 500, sell_pct: 0, deal_credit: 50, oldtimer_age: 30, target_return: 5 },
     D.defaults || {}
   );
 
@@ -44,7 +45,7 @@
       make: "", model: "", country: "", source: "", sort: "score", q: "",
       priceMin: num(defaults.price_min), priceMax: num(defaults.price_max), maxKm: num(defaults.max_km),
       maxDist: num(defaults.max_distance_km),
-      manual: false, hideRisk: true, hideLowConf: true, gainOnly: false, dropsOnly: false, favsOnly: false,
+      manual: false, hideRisk: true, hideLowConf: true, gainOnly: false, dropsOnly: false, favsOnly: false, showSuggested: true,
       costs: pick(defaults, COST_FIELDS.map(function (f) { return f.key; })),
       weights: Object.assign({}, DEFAULT_WEIGHTS),
     };
@@ -167,6 +168,7 @@
       if (state.gainOnly && r.proj.net <= 0) return false;
       if (state.dropsOnly && !(l.drop > 0)) return false;
       if (state.favsOnly && !favs[l.id]) return false;
+      if (!state.showSuggested && r.m.suggested) return false;
       if (q && (l.title + " " + l.variants.join(" ")).toLowerCase().indexOf(q) === -1) return false;
       return true;
     });
@@ -258,6 +260,7 @@
     $("f-gain").checked = state.gainOnly;
     $("f-drops").checked = state.dropsOnly;
     $("f-favs").checked = state.favsOnly;
+    $("f-sugg").checked = state.showSuggested;
   }
 
   function bind() {
@@ -285,6 +288,7 @@
     $("f-gain").addEventListener("change", function (e) { state.gainOnly = e.target.checked; update(true); });
     $("f-drops").addEventListener("change", function (e) { state.dropsOnly = e.target.checked; update(true); });
     $("f-favs").addEventListener("change", function (e) { state.favsOnly = e.target.checked; update(true); });
+    $("f-sugg").addEventListener("change", function (e) { state.showSuggested = e.target.checked; update(true); });
     $("fav-panel").addEventListener("click", function (e) {
       var b = e.target.closest("[data-unfav]");
       if (!b) return;
@@ -428,7 +432,7 @@
       var b = x(Math.max(0, s.annual));
       return '<button type="button" class="m-row' + (state.model === s.id ? " active" : "") + '" data-model="' + esc(s.id) + '" title="' +
         esc(s.m.make + " " + s.m.name + " · " + s.n + " advertenties · mediaanprijs " + fmtEur(s.price) + " · mediaan netto " + fmtSigned(s.net)) + '">' +
-        '<span class="m-name">' + esc(s.m.make + " " + s.m.name) + " <small>(" + s.n + ")</small></span>" +
+        '<span class="m-name">' + esc(s.m.make + " " + s.m.name) + (s.m.suggested ? ' <span class="chip sugg">voorstel</span>' : "") + " <small>(" + s.n + ")</small></span>" +
         '<span class="m-track"><span class="m-zero" style="left:' + zero + '%"></span><span class="m-bar' + (s.annual < 0 ? " neg" : "") +
         '" style="left:' + a + "%;width:" + Math.max(0.6, b - a) + '%"></span></span>' +
         '<span class="m-val ' + (s.annual >= 0 ? "pos" : "neg") + '">' + fmtPct(s.annual) + "</span></button>";
@@ -450,6 +454,7 @@
 
   function chips(l, m) {
     var out = [];
+    if (m.suggested) out.push('<span class="chip sugg" title="Voorgesteld model, niet uit je oorspronkelijke lijst">Voorstel</span>');
     l.variants.forEach(function (v) { out.push('<span class="chip">' + esc(v) + "</span>"); });
     var age = l.year ? CURRENT_YEAR - l.year : null;
     if (age != null) {
@@ -547,6 +552,13 @@
     var nego = "";
     if (l.days != null && l.days >= LONG_ONLINE) nego = "Al " + l.days + " dagen online: er is meestal ruimte om 5-10% lager te bieden.";
     else if (l.drop > 0) nego = "De verkoper zakte al in prijs: hij is gemotiveerd om te verkopen.";
+    var adv = V.bidAdvice(l, par, CURRENT_YEAR);
+    var advHtml = '<div class="bid' + (adv.worth ? "" : " no") + '"><div class="bid-row"><span>Openingsbod</span><strong>' + fmtEur(adv.bid) +
+      '</strong></div><div class="bid-row"><span>Maximaal</span><strong>' + fmtEur(adv.max) + "</strong></div>" +
+      '<p class="bid-note">' + esc(adv.worth
+        ? (adv.atAsking ? "Ook aan de vraagprijs haal je nog " : "Boven " + fmtEur(adv.max) + " haal je geen ") + Math.round(adv.target * 100) + "% rendement per jaar" + (adv.atAsking ? "." : " meer.") +
+          " Openingsbod = " + Math.round(adv.discount * 100) + "% onder " + (l.fair < l.price ? "de marktwaarde" : "de vraagprijs") + "."
+        : "Deze auto haalt je minimumrendement van " + Math.round(adv.target * 100) + "% per jaar niet, ook niet met een lager bod.") + "</p></div>";
     var noteHtml = favs[l.id]
       ? '<label class="note-lbl" for="note-' + esc(l.id) + '">Jouw notities</label><textarea class="note" id="note-' + esc(l.id) + '" data-note="' + esc(l.id) +
         '" rows="3" placeholder="bv. gebeld op 14/10, roest aan dorpels, bod €7.500">' + esc(favs[l.id].note || "") + "</textarea>"
@@ -561,7 +573,7 @@
       "<div><h4>Groei per jaar</h4><dl class=\"kv\">" + rateRows + "</dl>" +
       '<p class="hint" style="margin-top:8px">' + esc(facts.join(" · ")) + (seen ? "<br>" + esc(seen + drop) : "") +
       (extra.length ? "<br>" + esc(extra.join(" · ")) : "") + "</p>" + (nego ? '<p class="nego">' + esc(nego) + "</p>" : "") + condHtml + "</div>" +
-      "<div><h4>Rekensom</h4><dl class=\"kv\">" + costRows + "</dl>" +
+      "<div><h4>Biedadvies</h4>" + advHtml + '<h4 style="margin-top:14px">Rekensom</h4><dl class="kv">' + costRows + "</dl>" +
       '<p class="hint" style="margin-top:8px">Betrouwbaarheid ' + Math.round(l.conf * 100) + "% · zeldzaamheid " + m.rarity + "/5 · vraag " + m.demand + "/5</p></div>" +
       '<div class="chart"><h4>Waarde vs. totale investering</h4>' + chartSvg(V.series(l, par, CURRENT_YEAR)) +
       '<div class="legend"><span><i class="sw" style="background:var(--accent)"></i>Waarde auto</span><span><i class="sw" style="background:var(--brass)"></i>Geïnvesteerd (aankoop + kosten)</span></div>' +
@@ -638,6 +650,7 @@
     var rowsDef = [
       ["Prijs", function (r) { return fmtEur(r.l.price) + (r.l.drop > 0 ? ' <span class="pos">(−' + fmtEur(r.l.drop) + ")</span>" : ""); }],
       ["Marktwaarde", function (r) { return r.l.comps >= 4 ? fmtEur(r.l.fair) : "onbekend"; }],
+      ["Biedadvies", function (r) { var a = V.bidAdvice(r.l, params(), CURRENT_YEAR); return a.worth ? "bied " + fmtEur(a.bid) + "<br><span class=\"hint\">max. " + fmtEur(a.max) + "</span>" : '<span class="neg">niet interessant</span>'; }],
       ["Bouwjaar · km", function (r) { return (r.l.year || "–") + " · " + fmtKm(r.l.km); }],
       ["Afstand", function (r) { return r.l.dist != null ? int.format(Math.round(r.l.dist)) + " km" : "–"; }],
       ["Staat", function (r) { var c = r.l.cond || {}; return (c.score > 0 ? "+" : "") + String(c.score || 0).replace(".", ",") + ((c.pos || []).length ? '<br><span class="hint">✓ ' + esc(c.pos.join(", ")) + "</span>" : "") + ((c.neg || []).length ? '<br><span class="neg">✗ ' + esc(c.neg.join(", ")) + "</span>" : ""); }],

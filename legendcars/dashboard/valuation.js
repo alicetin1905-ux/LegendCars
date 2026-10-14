@@ -98,6 +98,53 @@
     return out;
   }
 
+  function floor50(x) {
+    return Math.max(0, Math.floor(x / 50) * 50);
+  }
+
+  /* Biedadvies: openingsbod + maximumprijs waarbij het minimumrendement nog gehaald wordt.
+     - openingsbod: laagste van vraagprijs en marktwaarde, min een korting die groeit met de tijd
+       online en het aantal minpunten, en kleiner wordt als de verkoper al zakte;
+     - maximum: hoogste aankoopprijs met een rendement per jaar >= target_return (standaard 5%). */
+  function bidAdvice(listing, params, currentYear) {
+    var fair = listing.fair || listing.price;
+    var base = Math.min(listing.price, fair);
+    var days = listing.days || 0;
+    var disc = days >= 90 ? 0.12 : days >= 45 ? 0.08 : 0.05;
+    if (listing.drop > 0) disc -= 0.02;
+    var neg = ((listing.cond && listing.cond.neg) || []).length;
+    disc += Math.min(0.09, 0.03 * neg);
+    disc = clamp(disc, 0.02, 0.2);
+
+    var target = (params.target_return != null ? params.target_return : 5) / 100;
+    function ok(p) {
+      var l2 = {};
+      for (var k in listing) l2[k] = listing[k];
+      l2.price = p;
+      return project(l2, params, currentYear).annual >= target;
+    }
+    var lo = 0, hi = Math.max(listing.price, fair) * 2;
+    if (!ok(100)) {
+      hi = 0;
+    } else {
+      for (var i = 0; i < 40; i++) {
+        var mid = (lo + hi) / 2;
+        if (ok(mid)) lo = mid; else hi = mid;
+      }
+      hi = lo;
+    }
+    var max = floor50(hi);
+    var bid = floor50(base * (1 - disc));
+    return {
+      bid: Math.min(bid, max),
+      max: max,
+      discount: disc,
+      target: target,
+      worth: max >= bid, // vergeleken met het onafgekapte openingsbod
+      atAsking: max >= listing.price,
+    };
+  }
+
   /* Score 0-100. Gewichten komen uit de schuifregelaars in het dashboard. */
   function score(listing, model, proj, w) {
     var parts = {
@@ -121,6 +168,7 @@
   return {
     OLDTIMER_AGE: OLDTIMER_AGE,
     DEFAULT_WEIGHTS: DEFAULT_WEIGHTS,
+    bidAdvice: bidAdvice,
     oldtimerAge: oldtimerAge,
     ageAdjustment: ageAdjustment,
     rateParts: rateParts,

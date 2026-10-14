@@ -256,3 +256,11 @@ select:focus-visible, input:focus-visible, button:focus-visible, summary:focus-v
 .unfav { margin-left: 6px; border: 0; background: none; color: var(--muted); cursor: pointer; font: inherit; }
 .unfav:hover { color: var(--bad); }
 .note-cell { white-space: pre-wrap; color: var(--muted); }
+
+/* Biedadvies en voorgestelde modellen */
+.bid { border: 1px solid var(--accent); border-radius: 8px; padding: 8px 12px; background: var(--accent-soft); }
+.bid.no { border-color: var(--bad); background: var(--bad-soft); }
+.bid-row { display: flex; justify-content: space-between; align-items: baseline; font-variant-numeric: tabular-nums; }
+.bid-row strong { font-family: var(--font-display); font-size: 1.35rem; }
+.bid-note { margin: 4px 0 0; font-size: 0.82rem; color: var(--muted); }
+.chip.sugg { background: var(--brass-soft); color: var(--brass); border: 1px dashed var(--brass); }

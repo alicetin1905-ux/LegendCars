@@ -14,7 +14,8 @@
 #                  dan moet het woord in de tekst staan (tenzij body_in_text = false)
 #   variants       uitvoeringen die extra (of minder) waardestijging geven; bonus in %-punt per jaar
 #   as24           AutoScout24-zoekopdrachten (make/model/line id's, body: 2=cabrio 3=coupé)
-#   query          zoektermen voor 2dehands.be en Marktplaats.nl
+#   query          zoektermen voor 2dehands.be, Marktplaats.nl, Kleinanzeigen en Willhaben
+#   suggested      true = voorgesteld model (niet uit de oorspronkelijke collectielijst)
 #
 # Alle regex'en werken op tekst in kleine letters, zonder accenten, waarbij leestekens
 # vervangen zijn door spaties (punt tussen cijfers blijft: "2.8", "3.0").
@@ -71,6 +72,7 @@ buy_costs = 500             # transport, keuring, inschrijving
 sell_pct = 0                # verkoopkosten in % (veiling/commissie/advertentie)
 deal_credit = 50            # % van het verschil tussen marktwaarde en vraagprijs dat je meetelt bij een koopje
 oldtimer_age = 30
+target_return = 5           # minimum rendement in % per jaar voor het biedadvies (maximumprijs)
 # Dagelijkse melding (GitHub-issue, optioneel Telegram): nieuwe auto's en prijsdalingen binnen de filters hierboven
 alert_min_score = 75        # minimale investeringsscore (0-100)
 alert_max_items = 15           # vanaf deze leeftijd geldt de oldtimerregeling (extra waardegroei rond die grens)
@@ -164,7 +166,7 @@ variants = [
 id = "bmw-e36-coupe-cabrio"
 make = "BMW"
 name = "3-serie E36 Coupé / Cabrio"
-years = [1990, 2000]
+years = [1992, 2000]
 trend = 3.5
 rarity = 2
 demand = 4
@@ -765,4 +767,180 @@ query = ["volvo c70 coupe"]
 as24 = [{ make = 73, model = 15236, body = [3] }]
 variants = [
   { match = "\\bt5\\b|2\\.3", label = "T5", bonus = 1.0 },
+]
+
+# ═══════════════════════ Voorgestelde modellen (suggested = true) ═══════════════════════
+# Youngtimers die vaak onder €10.000 te vinden zijn en de voorbije jaren goed in waarde stegen.
+# Trends zijn inschattingen; ze worden bijgestuurd door de eigen prijshistoriek.
+
+[[model]]
+id = "bmw-e30"
+make = "BMW"
+name = "3-serie E30"
+suggested = true
+years = [1982, 1993]
+trend = 5.5
+rarity = 2
+demand = 5
+manual_premium = true
+text_keywords = ["\\bbmw\\b", "e30|\\bserie ?3\\b|\\b3 ?(serie|series|reeks|er)\\b|\\b3[12][0-9] ?(i|is|ix)?\\b"]
+exclude = ["e36", "e46", "e21", "compact"]
+query = ["bmw e30"]
+as24 = [{ make = 13, line = 38 }]
+variants = [
+  { match = "\\b32[05]|2\\.5|2\\.0 ?6|6 ?cil", label = "320i/325i 6-cilinder", bonus = 1.5 },
+  { match = "cabrio", label = "Cabrio", bonus = 1.0 },
+  { match = "\\b325 ?ix|\\bix\\b", label = "325iX 4x4", bonus = 1.0 },
+  { match = "\\bm3\\b", label = "M3", bonus = 5.0 },
+  { match = "touring", label = "Touring", bonus = 0.5 },
+]
+
+[[model]]
+id = "vw-golf2-gti"
+make = "Volkswagen"
+name = "Golf 2 GTI / G60"
+suggested = true
+years = [1984, 1991]
+trend = 5.0
+rarity = 2
+demand = 5
+manual_premium = true
+keywords = ["\\bgti\\b|\\bg60\\b|\\bg 60\\b"]
+text_keywords = ["golf"]
+exclude = ["golf ?(1|i|3|iii|4|iv)\\b", "\\bmk ?[134]\\b", "cabrio"]
+query = ["golf 2 gti", "golf gti g60"]
+as24 = [{ make = 74, model = 2084 }]
+variants = [
+  { match = "16v|16 v", label = "GTI 16V", bonus = 1.0 },
+  { match = "\\bg60\\b|\\bg 60\\b|rallye|limited", label = "G60 / Rallye", bonus = 3.0 },
+]
+
+[[model]]
+id = "peugeot-205-gti"
+make = "Peugeot"
+name = "205 GTI / CTI"
+suggested = true
+years = [1984, 1994]
+trend = 6.0
+rarity = 3
+demand = 5
+manual_premium = true
+keywords = ["\\bgti\\b|\\bcti\\b"]
+text_keywords = ["\\b205\\b"]
+query = ["peugeot 205 gti", "peugeot 205 cti"]
+as24 = [{ make = 55, model = 1934 }]
+variants = [
+  { match = "1\\.9|130 ?pk|130 ?ps", label = "1.9 GTI", bonus = 1.5 },
+  { match = "\\bcti\\b|cabrio", label = "CTI cabrio", bonus = 0.5 },
+]
+
+[[model]]
+id = "toyota-mr2"
+make = "Toyota"
+name = "MR2 (W10 / W20)"
+suggested = true
+years = [1984, 1999]
+trend = 5.0
+rarity = 3
+demand = 4
+manual_premium = true
+text_keywords = ["mr ?2"]
+query = ["toyota mr2"]
+as24 = [{ make = 70, model = 2058 }]
+variants = [
+  { years = [1984, 1989], label = "MR2 W10", bonus = 1.0 },
+  { match = "turbo", label = "Turbo", bonus = 2.0 },
+  { match = "t ?bar|targa", label = "T-bar", bonus = 0.5 },
+]
+
+[[model]]
+id = "mercedes-w124-coupe"
+make = "Mercedes-Benz"
+name = "W124 Coupé (230/300 CE, E 220/320)"
+suggested = true
+years = [1987, 1996]
+trend = 4.0
+rarity = 2
+demand = 4
+text_keywords = ["\\bce\\b|coupe|c124|w124"]
+exclude = ["\\b24 ?v\\b|24v|ventil|300 ?ce ?24", "cabrio", "\\bw20[12]\\b", "\\bclk\\b"]
+body = ["coupe"]
+query = ["mercedes w124 coupe", "mercedes 230 ce", "mercedes 300 ce"]
+as24 = [{ make = 47, line = 57 }, { make = 47, line = 61, body = [3] }]
+variants = [
+  { match = "\\b320\\b|\\b300\\b|e ?320|3\\.2", label = "6-cilinder (300/320)", bonus = 1.0 },
+  { match = "sportline", label = "Sportline", bonus = 1.0 },
+]
+
+[[model]]
+id = "renault-5-gt-turbo"
+make = "Renault"
+name = "5 GT Turbo"
+suggested = true
+years = [1985, 1991]
+trend = 6.0
+rarity = 4
+demand = 4
+manual_premium = true
+keywords = ["gt ?turbo|\\bgtt\\b"]
+query = ["renault 5 gt turbo", "r5 gt turbo"]
+as24 = [{ make = 60, model = 1975 }, { make = 60, model = 1978 }]
+variants = [
+  { match = "raider|phase ?2|ph2|ph 2", label = "Phase 2 / Raider", bonus = 0.5 },
+]
+
+[[model]]
+id = "vw-scirocco"
+make = "Volkswagen"
+name = "Scirocco (Mk1/Mk2)"
+suggested = true
+years = [1974, 1992]
+trend = 4.0
+rarity = 3
+demand = 3
+manual_premium = true
+text_keywords = ["scirocco"]
+query = ["vw scirocco"]
+as24 = [{ make = 74, model = 2092 }]
+variants = [
+  { match = "16v|gtx|gt ?ii|gt 2|\\bgli\\b", label = "GT II / GTX / 16V", bonus = 1.5 },
+  { years = [1974, 1981], label = "Mk1", bonus = 1.5 },
+]
+
+[[model]]
+id = "opel-manta-b"
+make = "Opel"
+name = "Manta B"
+suggested = true
+years = [1975, 1988]
+trend = 4.5
+rarity = 3
+demand = 4
+manual_premium = true
+text_keywords = ["manta"]
+query = ["opel manta"]
+as24 = [{ make = 54, model = 1921 }]
+variants = [
+  { match = "\\bgsi\\b|\\bgt ?e\\b|\\bgte\\b|i200|irmscher|exclusive", label = "GSi / GT/E / i200", bonus = 1.5 },
+  { match = "cc|hatchback|combi coupe", label = "CC (hatchback)", bonus = 0.0 },
+]
+
+[[model]]
+id = "mazda-mx5-na"
+make = "Mazda"
+name = "MX-5 NA"
+suggested = true
+years = [1989, 1997]
+trend = 5.0
+rarity = 1
+demand = 5
+manual_premium = true
+text_keywords = ["mx ?5|miata|eunos"]
+exclude = ["\\bnb\\b", "\\bnc\\b", "\\bnd\\b"]
+query = ["mazda mx5 na", "mazda mx-5"]
+as24 = [{ make = 46, model = 1842 }]
+variants = [
+  { match = "1\\.8", label = "1.8", bonus = 0.5 },
+  { match = "limited|special|edition|le mans|berkeley|merlot|monza|jubile", label = "Speciale editie", bonus = 1.5 },
+  { match = "hardtop", label = "Met hardtop", bonus = 0.3 },
 ]

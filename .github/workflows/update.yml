@@ -6,6 +6,9 @@ on:
     # "Juiste tijd?" laat enkel de run door die bij de huidige zomer/wintertijd hoort.
     - cron: "40 6 * * *" # 08:40 zomertijd (CEST, UTC+2)
     - cron: "40 7 * * *" # 08:40 wintertijd (CET, UTC+1)
+    # Back-up om 11:00: draait enkel als GitHub de run van 08:40 heeft overgeslagen.
+    - cron: "0 9 * * *" # 11:00 zomertijd
+    - cron: "0 10 * * *" # 11:00 wintertijd
   workflow_dispatch: {}
 
 permissions:
@@ -21,20 +24,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
+      - uses: actions/checkout@v4
       - name: Juiste tijd?
         id: tijd
         env:
           SCHEDULE: ${{ github.event.schedule }}
         run: |
           offset=$(TZ=Europe/Brussels date +%z)
-          if [ -z "$SCHEDULE" ]; then run=true                                   # handmatig gestart
-          elif [ "$SCHEDULE" = "40 6 * * *" ] && [ "$offset" = "+0200" ]; then run=true
-          elif [ "$SCHEDULE" = "40 7 * * *" ] && [ "$offset" = "+0100" ]; then run=true
-          else run=false; fi
-          echo "Brussel: $(TZ=Europe/Brussels date '+%F %H:%M %Z'), schema '$SCHEDULE' -> uitvoeren: $run"
+          today=$(TZ=Europe/Brussels date +%F)
+          al_gedaan=false
+          if grep -q "\"last_seen\": \"$today\"" data/listings.jsonl; then al_gedaan=true; fi
+          case "$SCHEDULE" in
+            "")           run=true ;;                                     # handmatig gestart
+            "40 6 * * *") [ "$offset" = "+0200" ] && run=true || run=false ;;
+            "40 7 * * *") [ "$offset" = "+0100" ] && run=true || run=false ;;
+            "0 9 * * *")  [ "$offset" = "+0200" ] && [ "$al_gedaan" = false ] && run=true || run=false ;;
+            "0 10 * * *") [ "$offset" = "+0100" ] && [ "$al_gedaan" = false ] && run=true || run=false ;;
+            *)            run=false ;;
+          esac
+          echo "Brussel: $(TZ=Europe/Brussels date '+%F %H:%M %Z'), schema '$SCHEDULE', vandaag al bijgewerkt: $al_gedaan -> uitvoeren: $run"
           echo "run=$run" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@v4
-        if: steps.tijd.outputs.run == 'true'
       - uses: actions/setup-python@v5
         if: steps.tijd.outputs.run == 'true'
         with:

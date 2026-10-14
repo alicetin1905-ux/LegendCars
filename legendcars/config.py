@@ -70,6 +70,7 @@ class Model:
     exclude: list[re.Pattern]
     body: list[str]
     body_in_text: bool
+    suggested: bool
     variants: list[Variant]
     as24: list[As24Search]
     query: list[str]
@@ -88,6 +89,7 @@ class Model:
             "rarity": self.rarity,
             "demand": self.demand,
             "manualPremium": self.manual_premium,
+            "suggested": self.suggested,
         }
 
 
@@ -169,6 +171,7 @@ def load(path: Path | str = DEFAULT_WATCHLIST) -> Watchlist:
                 exclude=_compile(m.get("exclude")),
                 body=m.get("body", []),
                 body_in_text=bool(m.get("body_in_text", True)),
+                suggested=bool(m.get("suggested", False)),
                 variants=[
                     Variant(
                         label=v["label"],

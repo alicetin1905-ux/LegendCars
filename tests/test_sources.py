@@ -29,7 +29,7 @@ class AutoScout24Test(unittest.TestCase):
         model = WL.model("bmw-e36-coupe-cabrio")
         url = autoscout24.build_url(model.as24[0], model, ["B", "NL"], 2)
         self.assertIn("mmmv=13%7C%7C38%7C", url)
-        self.assertIn("fregfrom=1990", url)
+        self.assertIn("fregfrom=1992", url)
         self.assertIn("body=2", url)
         self.assertIn("page=2", url)
 

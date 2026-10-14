@@ -62,3 +62,24 @@ test("score is 0-100 and rewards better returns", () => {
   const hi = V.score(better, m, V.project(better, params, 2026), w).value;
   assert.ok(lo >= 0 && hi <= 100 && hi > lo);
 });
+
+test("bid advice: discount grows with days online, max respects target return", () => {
+  const p = { ...params, storage_per_month: 0, insurance_per_year: 0, tax_per_year: 0, maintenance_per_year: 0, target_return: 5 };
+  const good = { ...base, rate: { ...base.rate, trend: 8 } };
+  const fresh = V.bidAdvice({ ...good, days: 2 }, p, 2026);
+  const stale = V.bidAdvice({ ...good, days: 120 }, p, 2026);
+  assert.ok(stale.bid < fresh.bid);
+  assert.equal(fresh.bid % 50, 0);
+  // op de maximumprijs is het rendement nog >= 5%, net erboven niet meer
+  const atMax = V.project({ ...good, price: fresh.max }, p, 2026).annual;
+  const above = V.project({ ...good, price: fresh.max + 200 }, p, 2026).annual;
+  assert.ok(atMax >= 0.05 - 1e-9 && above < 0.05);
+});
+
+test("bid advice: a car that never reaches the target is flagged", () => {
+  const bad = { ...base, rate: { ...base.rate, trend: -3 } };
+  const adv = V.bidAdvice(bad, { ...params, target_return: 10 }, 2026);
+  assert.equal(adv.worth, false);
+  assert.ok(adv.max < bad.price);
+  assert.ok(adv.bid <= adv.max);
+});

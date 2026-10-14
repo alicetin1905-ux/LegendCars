@@ -48,6 +48,11 @@ Na elke update kijkt `legendcars/alerts.mjs` naar auto's die **vandaag nieuw onl
 - **Staat:** voor de auto's binnen je filters wordt de volledige advertentie gelezen (`python -m legendcars details`, zit in de dagelijkse update). Pluspunten (Car-Pass/NAP, onderhoudshistoriek, 1e eigenaar, garagewagen, oldtimerplaat, keuring, roestvrij, origineel) en minpunten (roest, ongeval, motorproblemen, tuning, geen keuring, vervangen motor, lak/deuken) geven een staat-score van −4 tot +4. Die telt mee in de groei (max. ±1%/jaar) en in de score. De beschrijving zelf wordt niet bewaard; telefoonnummers en e-mailadressen worden uit opgeslagen teksten verwijderd.
 - **Prijsdalingen en tijd online:** badges "Prijs −€X" en "57 d online", filter "Enkel prijsdalingen", sorteren op "Grootste prijsdaling". Vanaf 45 dagen online krijg je een onderhandelingstip.
 - **Favorieten:** klik "☆ Bewaar" bij een auto, voeg notities toe in het detailpaneel en vergelijk je favorieten naast elkaar bovenaan. Favorieten en notities worden in je browser bewaard (per toestel).
+- **Biedadvies:** per auto een **openingsbod** en een **maximumprijs**. Het openingsbod is de laagste van vraagprijs en marktwaarde, min 5% (8% vanaf 45 dagen online, 12% vanaf 90 dagen), +3% per minpunt in de staat en −2% als de verkoper al zakte. De maximumprijs is de hoogste prijs waarbij je nog je **minimumrendement** per jaar haalt (`target_return`, standaard 5%, aan te passen bij "Kosten en scoregewichten"). Het advies staat ook in de dagelijkse melding.
+
+## Voorgestelde modellen
+
+Naast je eigen lijst zoekt het dashboard ook naar 9 modellen die goed passen bij je collectie en budget: **BMW E30**, **VW Golf 2 GTI**, **Peugeot 205 GTI**, **Toyota MR2**, **Mercedes W124 coupé (230/300 CE)**, **Renault 5 GT Turbo**, **VW Scirocco**, **Opel Manta B** en **Mazda MX-5 NA**. Ze krijgen een badge "Voorstel". Met de vink "Toon voorgestelde modellen" zet je ze aan of uit. Wil je er één definitief houden of schrappen, pas dan `suggested = true` aan of verwijder het blok in `watchlist.toml`.
 
 ## Hoe de waarde wordt ingeschat
 
@@ -78,13 +83,13 @@ python -m legendcars build                       # enkel dashboard opnieuw bouwe
 python -m legendcars models                      # overzicht van de watchlist
 ```
 
-Tests: `python -m unittest discover -s tests -t .` en `node --test tests/valuation.test.mjs`.
+Tests: `python -m unittest discover -s tests -t .` en `node --test tests/valuation.test.mjs tests/alerts.test.mjs`.
 
 ## Automatisch elke dag (GitHub)
 
 1. **Settings → Actions → General → Workflow permissions**: kies *Read and write permissions*.
 2. **Settings → Pages**: *Deploy from a branch*, branch `main`, map `/docs` of `/ (root)`. Bij root stuurt `index.html` door naar het dashboard in `docs/`.
-3. De workflow **Dagelijkse update** draait elke ochtend en bewaart nieuwe advertenties en prijzen in `data/`. Hij start elke dag om 08:40 Belgische tijd (zomer- en wintertijd), zodat de melding rond 09:00 klaarstaat. GitHub kan geplande runs soms wat later starten. Je kunt hem ook manueel starten via **Actions → Dagelijkse update → Run workflow**.
+3. De workflow **Dagelijkse update** draait elke ochtend en bewaart nieuwe advertenties en prijzen in `data/`. Hij start elke dag om 08:40 Belgische tijd (zomer- en wintertijd), zodat de melding rond 09:00 klaarstaat. GitHub kan geplande runs soms wat later starten of overslaan. Daarom is er om 11:00 een **back-uprun**, die enkel draait als de update van die dag nog niet gebeurd is (dus nooit dubbele meldingen). Je kunt hem ook manueel starten via **Actions → Dagelijkse update → Run workflow**.
 
 ## Bestanden
 
