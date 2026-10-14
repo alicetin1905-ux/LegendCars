@@ -74,6 +74,11 @@ class MatchingTest(unittest.TestCase):
         m = match(L("VW Corrado G60 restauratieproject", year=1990), WL.model("vw-corrado"), WL.settings)
         self.assertIn("Project/restauratie", m.flags)
 
+    def test_german_project_flagged(self):
+        for t in ("VW Corrado G60 Projektaufgabe", "VW Corrado G60 ohne Motor"):
+            m = match(L(t, source="kleinanzeigen", year=1990), WL.model("vw-corrado"), WL.settings)
+            self.assertIn("Project/restauratie", m.flags, t)
+
 
 class WatchlistTest(unittest.TestCase):
     def test_every_model_has_a_search(self):

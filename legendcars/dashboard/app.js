@@ -432,7 +432,7 @@
       var b = x(Math.max(0, s.annual));
       return '<button type="button" class="m-row' + (state.model === s.id ? " active" : "") + '" data-model="' + esc(s.id) + '" title="' +
         esc(s.m.make + " " + s.m.name + " · " + s.n + " advertenties · mediaanprijs " + fmtEur(s.price) + " · mediaan netto " + fmtSigned(s.net)) + '">' +
-        '<span class="m-name">' + esc(s.m.make + " " + s.m.name) + (s.m.suggested ? ' <span class="chip sugg">voorstel</span>' : "") + " <small>(" + s.n + ")</small></span>" +
+        '<span class="m-name">' + (s.m.suggested ? '<span class="chip sugg" title="Voorgesteld model">voorstel</span> ' : "") + esc(s.m.make + " " + s.m.name) + " <small>(" + s.n + ")</small></span>" +
         '<span class="m-track"><span class="m-zero" style="left:' + zero + '%"></span><span class="m-bar' + (s.annual < 0 ? " neg" : "") +
         '" style="left:' + a + "%;width:" + Math.max(0.6, b - a) + '%"></span></span>' +
         '<span class="m-val ' + (s.annual >= 0 ? "pos" : "neg") + '">' + fmtPct(s.annual) + "</span></button>";

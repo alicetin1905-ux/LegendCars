@@ -44,10 +44,10 @@ title_exclude = [
 ]
 # Woorden die een risico aangeven (geen uitsluiting, wel lagere betrouwbaarheid)
 risk_flags = [
-  { match = "project|opknapper|restauratie|restoration|restauratieproject|bastler|scheunenfund|restaurationsobjekt|para restaurar|a restaurar", label = "Project/restauratie" },
+  { match = "project|projekt|opknapper|restauratie|restoration|bastler|scheunenfund|restaurationsobjekt|para restaurar|a restaurar|donor|ohne motor|zonder motor|kein motor|rohkarosse|teilzerlegt|zum fertigstellen|af te werken", label = "Project/restauratie" },
   { match = "schade|ongeval|accident|hagel|unfall", label = "Schade" },
   { match = "defect|defekt|motor kapot|motorschade|start niet|rijdt niet|getriebeschaden|springt nicht an|averiado|no arranca", label = "Defect" },
-  { match = "zonder papieren|geen papieren|no papers|sans papiers|ohne papiere|ohne brief", label = "Geen papieren" },
+  { match = "zonder papieren|geen papieren|no papers|sans papiers|ohne papiere|ohne brief|geen kenteken|zonder kenteken", label = "Geen papieren" },
   { match = "\\blpg\\b", label = "LPG" },
   { match = "export|marchand|handelaar", label = "Export/handelaar" },
 ]
