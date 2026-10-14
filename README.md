@@ -84,7 +84,7 @@ Tests: `python -m unittest discover -s tests -t .` en `node --test tests/valuati
 
 1. **Settings → Actions → General → Workflow permissions**: kies *Read and write permissions*.
 2. **Settings → Pages**: *Deploy from a branch*, branch `main`, map `/docs` of `/ (root)`. Bij root stuurt `index.html` door naar het dashboard in `docs/`.
-3. De workflow **Dagelijkse update** draait elke ochtend en bewaart nieuwe advertenties en prijzen in `data/`. Je kunt hem ook manueel starten via **Actions → Dagelijkse update → Run workflow**.
+3. De workflow **Dagelijkse update** draait elke ochtend en bewaart nieuwe advertenties en prijzen in `data/`. Hij start elke dag om 08:40 Belgische tijd (zomer- en wintertijd), zodat de melding rond 09:00 klaarstaat. GitHub kan geplande runs soms wat later starten. Je kunt hem ook manueel starten via **Actions → Dagelijkse update → Run workflow**.
 
 ## Bestanden
 

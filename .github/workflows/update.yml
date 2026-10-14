@@ -2,7 +2,10 @@ name: Dagelijkse update
 
 on:
   schedule:
-    - cron: "17 5 * * *" # elke dag rond 07:17 Belgische tijd
+    # Start 08:40 Belgische tijd, melding rond 09:00. GitHub rekent in UTC; de stap
+    # "Juiste tijd?" laat enkel de run door die bij de huidige zomer/wintertijd hoort.
+    - cron: "40 6 * * *" # 08:40 zomertijd (CEST, UTC+2)
+    - cron: "40 7 * * *" # 08:40 wintertijd (CET, UTC+1)
   workflow_dispatch: {}
 
 permissions:
@@ -18,15 +21,32 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
+      - name: Juiste tijd?
+        id: tijd
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          offset=$(TZ=Europe/Brussels date +%z)
+          if [ -z "$SCHEDULE" ]; then run=true                                   # handmatig gestart
+          elif [ "$SCHEDULE" = "40 6 * * *" ] && [ "$offset" = "+0200" ]; then run=true
+          elif [ "$SCHEDULE" = "40 7 * * *" ] && [ "$offset" = "+0100" ]; then run=true
+          else run=false; fi
+          echo "Brussel: $(TZ=Europe/Brussels date '+%F %H:%M %Z'), schema '$SCHEDULE' -> uitvoeren: $run"
+          echo "run=$run" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
+        if: steps.tijd.outputs.run == 'true'
       - uses: actions/setup-python@v5
+        if: steps.tijd.outputs.run == 'true'
         with:
           python-version: "3.12"
       - name: Tests
+        if: steps.tijd.outputs.run == 'true'
         run: python -m unittest discover -s tests -t .
       - name: Websites doorzoeken en dashboard bouwen
+        if: steps.tijd.outputs.run == 'true'
         run: python -m legendcars update
       - name: Resultaten bewaren
+        if: steps.tijd.outputs.run == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -43,6 +63,7 @@ jobs:
             git push
           fi
       - name: Melding nieuwe topkansen
+        if: steps.tijd.outputs.run == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           DASHBOARD_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
