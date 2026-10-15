@@ -36,8 +36,9 @@ jobs:
           if grep -q "\"last_seen\": \"$today\"" data/listings.jsonl; then al_gedaan=true; fi
           case "$SCHEDULE" in
             "")           run=true ;;                                     # handmatig gestart
-            "40 6 * * *") [ "$offset" = "+0200" ] && run=true || run=false ;;
-            "40 7 * * *") [ "$offset" = "+0100" ] && run=true || run=false ;;
+            # Geplande runs slaan over als de update van vandaag er al is (GitHub start ze soms uren te laat)
+            "40 6 * * *") [ "$offset" = "+0200" ] && [ "$al_gedaan" = false ] && run=true || run=false ;;
+            "40 7 * * *") [ "$offset" = "+0100" ] && [ "$al_gedaan" = false ] && run=true || run=false ;;
             "0 9 * * *")  [ "$offset" = "+0200" ] && [ "$al_gedaan" = false ] && run=true || run=false ;;
             "0 10 * * *") [ "$offset" = "+0100" ] && [ "$al_gedaan" = false ] && run=true || run=false ;;
             *)            run=false ;;
