@@ -1,0 +1,16 @@
+{
+  "name": "LegendCars Oldtimer Collection",
+  "short_name": "LegendCars",
+  "description": "Oldtimers uit je collectielijst, gerangschikt op verwachte waarde na stockage.",
+  "lang": "nl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e5a43",
+  "theme_color": "#0e5a43",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

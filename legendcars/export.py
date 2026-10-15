@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -168,4 +169,6 @@ def render(data: dict, output: Path = DEFAULT_OUTPUT) -> Path:
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(html, encoding="utf-8")
+    for f in (DASHBOARD_DIR / "pwa").iterdir():  # icoon, manifest en service worker voor de iPhone-app
+        shutil.copyfile(f, output.parent / f.name)
     return output

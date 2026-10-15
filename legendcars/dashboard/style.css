@@ -89,6 +89,14 @@ code { font-size: 0.9em; background: var(--accent-soft); padding: 0 4px; border-
 .wordmark { font-family: var(--font-display); font-weight: 700; font-size: 2.4rem; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1; }
 .edition { font-family: var(--font-display); font-weight: 500; font-size: 1.15rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brass); }
 .meta { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.refresh { margin: 0 0 0 8px; }
+
+/* Als app op het beginscherm: ruimte voor notch en home-balk */
+.wrap {
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: max(40px, env(safe-area-inset-bottom));
+}
 
 /* KPI's */
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }

@@ -691,4 +691,26 @@
   bind();
   renderMeta();
   update(true);
+  initApp();
+
+  /* Als app op het beginscherm (iPhone): vernieuwknop, automatisch vernieuwen na een uur
+     en de laatste versie offline bewaren. */
+  function initApp() {
+    var standalone = window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+    var loaded = Date.now();
+    if (standalone) {
+      document.documentElement.classList.add("app");
+      $("refresh").hidden = false;
+      $("refresh").addEventListener("click", function () { location.reload(); });
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible" && Date.now() - loaded > 3600 * 1000) location.reload();
+      });
+    }
+    try {
+      if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost") && window.top === window) {
+        navigator.serviceWorker.register("sw.js").catch(function () {});
+      }
+    } catch (e) { /* bv. in een ingesloten voorbeeld */ }
+  }
 })();

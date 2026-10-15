@@ -15,6 +15,15 @@ Niet opgenomen: **AutoTrack.nl** (zelfde advertenties als AutoScout24), **Autovl
 
 Open `docs/index.html` in je browser. Of zet GitHub Pages aan (zie hieronder), dan staat het dashboard online en wordt het elke ochtend automatisch bijgewerkt.
 
+## Als app op je iPhone
+
+1. Open **https://alicetin1905-ux.github.io/LegendCars/** in **Safari**.
+2. Tik op het deelicoon (vierkant met pijl omhoog) → **Zet op beginscherm** → **Voeg toe**.
+
+Je krijgt een LegendCars-icoon dat opent als een gewone app, zonder Safari-balken. Bovenaan staat een knop **↻ Vernieuwen**; open je de app na meer dan een uur opnieuw, dan haalt ze zelf de nieuwste gegevens op. Zonder internet zie je de laatst geladen versie.
+
+> Favorieten en notities worden per app bewaard: wat je in Safari bewaarde, zie je niet automatisch in de app op je beginscherm.
+
 ## Wat het dashboard doet
 
 - **Schuifregelaar "Stockeren voor X jaar"** (1 tot 15 jaar): alle berekeningen passen zich live aan.
@@ -101,7 +110,7 @@ legendcars/market.py        marktwaarde, groei-onderdelen, gemeten trend
 legendcars/dashboard/       HTML/CSS/JS van het dashboard (valuation.js = projectie)
 data/listings.jsonl         alle gevonden advertenties (ook verdwenen = waarschijnlijk verkocht)
 data/price_history.csv      prijs per advertentie per wijziging
-docs/index.html             het gebouwde dashboard
+docs/index.html             het gebouwde dashboard (+ icoon, manifest en sw.js voor de iPhone-app)
 ```
 
 ## Opmerkingen
