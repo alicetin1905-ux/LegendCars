@@ -74,6 +74,7 @@ class Model:
     variants: list[Variant]
     as24: list[As24Search]
     query: list[str]
+    related: list[str] = field(default_factory=list)  # zelfde wagen, ander filter (sluiten elkaar niet uit)
 
     @property
     def label(self) -> str:
@@ -107,6 +108,7 @@ class Settings:
     min_price: int
     title_exclude: list[re.Pattern]
     risk_flags: list[tuple[re.Pattern, str]]
+    siblings: dict = field(default_factory=dict)  # merk -> modellen van dat merk (voor matching)
 
 
 @dataclass
@@ -172,6 +174,7 @@ def load(path: Path | str = DEFAULT_WATCHLIST) -> Watchlist:
                 body=m.get("body", []),
                 body_in_text=bool(m.get("body_in_text", True)),
                 suggested=bool(m.get("suggested", False)),
+                related=m.get("related", []),
                 variants=[
                     Variant(
                         label=v["label"],
@@ -185,4 +188,6 @@ def load(path: Path | str = DEFAULT_WATCHLIST) -> Watchlist:
                 query=m.get("query", []),
             )
         )
+    for model in models:
+        settings.siblings.setdefault(model.make, []).append(model)
     return Watchlist(settings=settings, dashboard=raw.get("dashboard", {}), models=models, skipped=skipped)

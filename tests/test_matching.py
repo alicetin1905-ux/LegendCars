@@ -144,3 +144,29 @@ class SuggestedModelsTest(unittest.TestCase):
         m = WL.model("mercedes-w124-coupe")
         self.assertIsNone(reject_reason(L("Mercedes 230 CE Coupe", year=1990, body="coupe"), m, WL.settings))
         self.assertIsNotNone(reject_reason(L("Mercedes 300 CE-24 Coupe", year=1990, body="coupe"), m, WL.settings))
+
+
+class OtherCarInTitleTest(unittest.TestCase):
+    def check(self, title, model_id, desc, source="marktplaats", year=1989):
+        return reject_reason(L(title, source=source, year=year, description=desc), WL.model(model_id), WL.settings)
+
+    def test_other_make_rejected(self):
+        r = self.check("MG Metro 1.3 Turbo 1989 Rood", "vw-golf2-gti", "Toen de concurrent van de Golf GTI")
+        self.assertIn("modelwoord enkel in beschrijving", r)
+
+    def test_other_model_same_make_rejected(self):
+        r = self.check("Volkswagen Passat 2.0 GT", "vw-golf2-gti", "motor uit een golf gti")
+        self.assertIn("passat", r)
+        r = self.check("VW Corrado 2.0", "vw-golf3-gti-vr6", "golf 3 gti motor", year=1993)
+        self.assertIn("Corrado", r)
+
+    def test_model_word_only_in_description_still_ok(self):
+        self.assertIsNone(self.check("BMW 325i Cabrio", "bmw-e36-coupe-cabrio", "bmw e36 325i cabrio", year=1995))
+        self.assertIsNone(self.check("Saab 900S 16V Turbo", "saab-900-turbo", "saab 900 turbo", year=1993))
+
+    def test_related_models_do_not_exclude_each_other(self):
+        self.assertIsNone(self.check("Mercedes-Benz CE-24 300 Cabrio", "mercedes-300ce24", "300 ce 24v cabrio", year=1993))
+
+    def test_unfinished_project_flagged(self):
+        m = match(L("Opel Manta B 2.4 nicht fertig geworden", source="kleinanzeigen", year=1980), WL.model("opel-manta-b"), WL.settings)
+        self.assertIn("Project/restauratie", m.flags)
