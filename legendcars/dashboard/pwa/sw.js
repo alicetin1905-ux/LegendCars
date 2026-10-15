@@ -1,6 +1,6 @@
 /* LegendCars service worker: altijd eerst de nieuwste versie ophalen,
    zonder netwerk de laatst bewaarde versie tonen. */
-const CACHE = "legendcars-v1";
+const CACHE = "legendcars-v2";
 const SHELL = ["./", "manifest.webmanifest", "apple-touch-icon.png", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {
